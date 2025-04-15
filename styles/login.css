@@ -1,0 +1,187 @@
+/* Fondo del body con imagen difuminada */
+body {
+    font-family: 'Poppins', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('../styles/img/imagenLogin.jpg'); /* Imagen de fondo */
+    background-size: cover; /* Asegura que la imagen cubra todo el viewport */
+    background-position: center; /* Centra la imagen */
+    filter: blur(5px); /* Aplica el efecto de difuminado */
+    z-index: -1; /* Coloca la imagen detrás de todo */
+}
+
+/* Contenedor principal */
+.main-container {
+    display: flex;
+    height: 100vh; /* Ocupa toda la altura del viewport */
+    position: relative; /* Asegura que los elementos estén sobre el fondo */
+    z-index: 1; /* Coloca los elementos por encima del fondo */
+}
+
+/* Contenedor izquierdo */
+.left-container {
+    flex: 1; /* Ocupa el 50% del espacio */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    position: relative; /* Permite superponer contenido */
+    z-index: 2; /* Asegura que el contenido esté por encima del fondo */
+    overflow: hidden; /* Asegura que el pseudo-elemento no se salga del contenedor */
+}
+
+.left-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200%; /* Duplica el ancho para mostrar solo la mitad */
+    height: 100%;
+    background-image: url('../styles/img/imagenLogin.jpg'); /* Imagen de fondo */
+    background-size: cover;
+    background-position: left; /* Muestra la mitad izquierda de la imagen */
+    filter: blur(5px); /* Aplica el efecto de difuminado */
+    z-index: -1; /* Coloca la imagen detrás del contenido */
+    transition: filter 0.3s ease, background-position 0.3s ease; /* Transición suave para el efecto */
+}
+
+.left-container:hover::before {
+    filter: none; /* Elimina el efecto de difuminado al pasar el mouse */
+    background-position: left; /* Mantiene la mitad izquierda de la imagen */
+}
+
+.left-container .page-title,
+.left-container .logo-container {
+    position: relative; /* Asegura que el contenido esté por encima del fondo */
+    z-index: 3; /* Coloca el contenido por encima del fondo */
+}
+
+/* Contenedor derecho */
+.right-container {
+    flex: 1; /* Ocupa el 50% del espacio */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background-color: rgba(245, 245, 220, 0.9); /* Fondo beige con transparencia */
+    color: #000; /* Texto negro */
+    border-left: 2px solid rgba(0, 0, 0, 0.1); /* Línea divisoria opcional */
+    z-index: 2; /* Asegura que el contenido esté por encima del fondo */
+}
+
+/* Título */
+.page-title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #000; /* Negro */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); /* Sombra para destacar */
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Logo */
+.logo {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 3px solid #000;
+    margin-top: 20px;
+}
+
+/* Contenedor del formulario */
+.login-container {
+    display: flex;
+    flex-direction: column; /* Alinea los elementos en columna */
+    background-color: inherit; /* Hereda el color de fondo del contenedor padre */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Aumenta la sombra */
+    width: 100%;
+    max-width: 400px;
+    box-sizing: border-box;
+    text-align: left; /* Alinea el texto a la izquierda */
+    gap: 15px; /* Espaciado entre los elementos */
+}
+
+/* Estilo para los labels */
+.login-container label {
+    display: block; /* Asegura que los labels ocupen toda la línea */
+    font-size: 1rem; /* Tamaño de fuente */
+    font-weight: bold; /* Resalta los labels */
+    color: #000; /* Texto negro */
+    margin-bottom: 5px; /* Espaciado debajo del label */
+}
+
+/* Estilo para los inputs */
+.login-container input[type="text"],
+.login-container input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 1rem;
+    margin-bottom: 15px; /* Espaciado entre los inputs */
+}
+
+/* Botón de iniciar sesión */
+.login-container button {
+    width: 100%;
+    padding: 10px;
+    background-color: #008000; /* Verde por defecto */
+    color: #fff; /* Blanco */
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* Transición suave */
+    margin-top: 15px; /* Espaciado entre el botón y el input superior */
+}
+
+.login-container button:hover {
+    background-color: #FFA500; /* Naranja al pasar el mouse */
+}
+
+/* Footer */
+.footer {
+    background-color: #000; /* Fondo negro */
+    color: #fff; /* Texto blanco */
+    text-align: center;
+    padding: 10px 0; /* Espaciado vertical */
+    font-size: 0.9rem; /* Tamaño de fuente */
+    position: relative;
+    bottom: 0;
+    width: 100%; /* Asegura que ocupe todo el ancho */
+    z-index: 2; /* Asegura que el footer esté por encima del fondo */
+}
+
+/* Centrar y ajustar el texto dentro de content-container */
+.content-container {
+    text-align: center; /* Centra el texto horizontalmente */
+}
+
+.content-container h1 {
+    font-size: 2rem; /* Mantén el tamaño del h1 */
+    margin-bottom: 10px; /* Espaciado inferior */
+}
+
+.content-container h3 {
+    font-size: 0.9rem; /* Reduce el tamaño del h3 */
+    font-weight: normal; /* Opcional: ajusta el peso de la fuente */
+    margin-bottom: 5px; /* Espaciado inferior */
+}
