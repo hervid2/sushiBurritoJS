@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesero - Sushi Burrito</title>
+    <link rel="stylesheet" href="../styles/waiter.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header__left">
+            <img src="../styles/img/logo.jpg" alt="Logo Sushi Burrito" class="header__logo">
+        </div>
+        <div class="header__center">
+            <h1>Panel de Mesero</h1>
+        </div>
+        <div class="header__right">
+            <button class="header__logout-button">Cerrar Sesión</button>
+        </div>
+    </header>
+    <nav class="nav">
+        <div class="dropdown">
+            <a href="#" class="dropdown__toggle">Gestión Pedidos</a>
+            <div class="dropdown__menu">
+                <a href="#pendientes">Pendientes</a> <!-- Identificador único -->
+                <div class="dropdown__submenu">
+                    <a href="#">Editar Pedido</a>
+                    <a href="#">Cancelar Pedido</a>
+                </div>
+                <a href="#">En Preparación</a>
+                <a href="#">Completados</a>
+            </div>
+        </div>
+        <a href="#">Generar Pedido</a>
+        <a href="#">Cancelar Pedidos</a>
+    </nav>
+    <div class="content">
+        <p>Bienvenido al panel de mesero.</p>
+    </div>
+    <footer class="footer">
+        © 2025 Sushi Burrito. Todos los derechos reservados.
+    </footer>
+
+    
+    <script>
+        // JavaScript para manejar el menú desplegable *NO OLVIDAR TRASLADARLO AL ARCHIVO JS EXTERNO*
+        document.addEventListener('DOMContentLoaded', () => {
+            const pendientesLink = document.querySelector('.dropdown__menu a[href="#pendientes"]');
+            const submenu = document.querySelector('.dropdown__submenu');
+
+            pendientesLink.addEventListener('click', (event) => {
+                event.preventDefault(); // Evita que el enlace recargue la página
+                submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block'; // Alterna entre mostrar y ocultar
+            });
+        });
+    </script>
+</body>
+</html>
