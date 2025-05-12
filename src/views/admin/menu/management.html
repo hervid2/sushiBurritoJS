@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Menú - Sushi Burrito</title>
+    <link rel="stylesheet" href="../../../assets/css/main.css">
+</head>
+<body>
+    <!-- Header -->
+    <div data-include="../../../views/shared/header.html"></div>
+    
+    <!-- Navigation -->
+    <div data-include="../../../views/shared/navigation.html"></div>
+
+    <main class="content">
+        <section class="menu-management">
+            <div class="menu-management__header">
+                <h2 class="menu-management__title">Gestión del Menú</h2>
+                <button class="btn btn--primary" id="add-item-btn">+ Nuevo Ítem</button>
+            </div>
+
+            <div class="menu-form" id="menu-form" style="display: none;">
+                <form id="item-form">
+                    <div class="form-group">
+                        <label for="item-name" class="form-label">Nombre del Ítem</label>
+                        <input type="text" id="item-name" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="item-description" class="form-label">Descripción</label>
+                        <textarea id="item-description" class="form-control" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="item-price" class="form-label">Precio</label>
+                        <input type="number" id="item-price" class="form-control" min="0" step="0.01" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="item-category" class="form-label">Categoría</label>
+                        <select id="item-category" class="form-control" required>
+                            <option value="">Seleccione categoría</option>
+                            <option value="sushi">Sushi</option>
+                            <option value="burrito">Burrito</option>
+                            <option value="bebidas">Bebidas</option>
+                            <option value="postres">Postres</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" id="cancel-form" class="btn btn--secondary">Cancelar</button>
+                        <button type="submit" class="btn btn--primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <table class="table" id="menu-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Precio</th>
+                            <th>Categoría</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Datos se cargarán dinámicamente -->
+                        <tr>
+                            <td colspan="5" class="loading-message">Cargando menú...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <div data-include="../../../views/shared/footer.html"></div>
+
+    <script src="../../../controllers/admin/menu.controller.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const includes = document.querySelectorAll('[data-include]');
+            includes.forEach(include => {
+                fetch(include.getAttribute('data-include'))
+                    .then(response => response.text())
+                    .then(data => include.outerHTML = data);
+            });
+        });
+    </script>
+</body>
+</html>

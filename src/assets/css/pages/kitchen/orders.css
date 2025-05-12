@@ -1,0 +1,128 @@
+/*
+ * Estilos para el panel de cocina (visualización de pedidos)
+ */
+
+.kitchen-orders {
+  padding: 2rem 0;
+}
+
+.kitchen-orders__header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.kitchen-orders__title {
+  color: var(--color-primary);
+  font-size: var(--text-2xl);
+  margin-bottom: 1rem;
+}
+
+.order-card {
+  background-color: white;
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  border-left: 4px solid var(--color-primary);
+}
+
+.order-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.order-card__number {
+  font-weight: var(--font-bold);
+  color: var(--color-primary);
+}
+
+.order-card__time {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  opacity: 0.8;
+}
+
+.order-card__status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  text-transform: uppercase;
+}
+
+.order-card__status--pending {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.order-card__status--preparing {
+  background-color: #cce5ff;
+  color: #004085;
+}
+
+.order-card__status--ready {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.order-card__items {
+  margin-bottom: 1.5rem;
+}
+
+.order-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed var(--border-color);
+}
+
+.order-item:last-child {
+  border-bottom: none;
+}
+
+.order-item__name {
+  font-weight: var(--font-medium);
+}
+
+.order-item__quantity {
+  color: var(--color-primary);
+  font-weight: var(--font-bold);
+}
+
+.order-card__notes {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  font-style: italic;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem;
+  background-color: rgba(245, 245, 220, 0.5);
+  border-left: 3px solid var(--color-primary);
+}
+
+.order-card__actions {
+  display: flex;
+  gap: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .order-card__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .order-card__actions {
+    flex-direction: column;
+  }
+  
+  .order-card__actions .btn {
+    width: 100%;
+  }
+}
