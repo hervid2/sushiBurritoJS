@@ -1,0 +1,73 @@
+/*
+ * Estilos para tablas reutilizables en el proyecto
+ * Incluye la tabla de gestión de usuarios
+ */
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--border-radius);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.table th {
+  background-color: var(--color-secondary);
+  color: white;
+  font-weight: var(--font-semibold);
+  text-align: left;
+  padding: 1rem;
+}
+
+.table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr:nth-child(even) {
+  background-color: rgba(245, 245, 220, 0.3);
+}
+
+.table tr:hover {
+  background-color: rgba(231, 96, 5, 0.1);
+}
+
+.table__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Tabla en el panel de administración */
+.table-admin {
+  font-size: var(--text-base);
+}
+
+.table-admin th {
+  background-color: var(--color-primary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .table {
+    font-size: var(--text-xs);
+  }
+  
+  .table th, 
+  .table td {
+    padding: 0.5rem;
+  }
+  
+  .table__actions {
+    flex-direction: column;
+  }
+}

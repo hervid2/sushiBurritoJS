@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sushi Burrito</title>
+    <link rel="stylesheet" href="../../assets/css/main.css">
+</head>
+<body>
+    <!-- Header -->
+    <div data-include="../../views/shared/header.html"></div>
+    
+    <!-- Navigation -->
+    <div data-include="../../views/shared/navigation.html"></div>
+
+    <main class="content">
+        <section class="dashboard">
+            <div class="dashboard__header">
+                <h2 class="dashboard__title">Panel de Control</h2>
+            </div>
+            
+            <div class="dashboard__stats">
+                <div class="stat-card stat-card--primary">
+                    <div class="stat-card__value">24</div>
+                    <div class="stat-card__label">Pedidos Hoy</div>
+                </div>
+                <div class="stat-card stat-card--secondary">
+                    <div class="stat-card__value">5</div>
+                    <div class="stat-card__label">Usuarios Activos</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <div data-include="../../views/shared/footer.html"></div>
+
+    <script src="../../controllers/admin/dashboard.controller.js"></script>
+    <script>
+        // Para incluir los componentes compartidos
+        document.addEventListener('DOMContentLoaded', function() {
+            const includes = document.querySelectorAll('[data-include]');
+            includes.forEach(include => {
+                fetch(include.getAttribute('data-include'))
+                    .then(response => response.text())
+                    .then(data => include.outerHTML = data);
+            });
+        });
+    </script>
+</body>
+</html>

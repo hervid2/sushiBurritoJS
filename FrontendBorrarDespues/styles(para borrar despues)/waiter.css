@@ -1,0 +1,180 @@
+/* General */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: rgba(245, 245, 220); /* Beige */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Asegura que el contenido ocupe toda la altura de la ventana */
+}
+
+/* Header */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #e76005; /* Naranja */
+    color: #fff; /* Blanco */
+    padding: 10px 20px;
+    text-align: center;
+    width: 90%; /* Abarca casi todo el ancho disponible */
+    margin: 20px auto 10px; /* Deja un pequeño espacio a los lados */
+    border-radius: 8px; /* Bordes redondeados */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Sombra para destacar el header */
+}
+
+.header__logo {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%; /* Hace el logo redondeado */
+    border: 2px solid #000000; /* Borde negro */
+}
+
+.header__center {
+    flex: 1;
+    text-align: center;
+}
+
+.header__logout-button {
+    background-color: #008000; /* Verde */
+    color: #fff; /* Blanco */
+    border: none;
+    border-radius: 4px;
+    padding: 10px 15px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.header__logout-button:hover {
+    background-color: rgba(245, 245, 220); /* Beige */
+    color: #000;
+}
+
+/* Navigation */
+.nav {
+    display: flex;
+    justify-content: space-around;
+    background-color: #008000; /* Verde */
+    padding: 10px 20px;
+    width: 90%; /* Abarca casi todo el ancho disponible */
+    margin: 10px auto; /* Deja un pequeño espacio a los lados */
+    border-radius: 8px; /* Bordes redondeados */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Sombra para destacar el nav */
+}
+
+.nav a {
+    color: #fff; /* Blanco */
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 4px; /* Bordes redondeados */
+    transition: background-color 0.3s ease, transform 0.3s ease; /* Transición suave para el color y el tamaño */
+}
+
+.nav a:hover {
+    background-color: #006400; /* Verde oscuro */
+    transform: scale(1.1); /* Aumenta el tamaño del enlace un 10% */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Agrega una sombra para dar efecto de elevación */
+}
+
+/* Dropdown (solo para Mesero) */
+.dropdown {
+    position: relative;
+    display: flex; /* Cambia a flex para alinear correctamente con los hermanos */
+    align-items: center; /* Asegura que el toggle esté alineado verticalmente */
+}
+
+.dropdown__toggle {
+    cursor: pointer;
+    padding: 10px 20px; /* Asegura que tenga el mismo padding que los otros enlaces */
+    color: #fff; /* Blanco */
+    text-decoration: none;
+    border-radius: 4px; /* Bordes redondeados */
+    transition: background-color 0.3s ease, transform 0.3s ease; /* Transición suave */
+}
+
+.dropdown__toggle:hover {
+    background-color: #006400; /* Verde oscuro */
+    transform: scale(1.1); /* Aumenta ligeramente el tamaño al pasar el mouse */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Agrega una sombra para dar efecto de elevación */
+}
+
+.dropdown__menu {
+    display: none; /* Oculta el menú por defecto */
+    position: absolute;
+    top: 100%; /* Asegura que el menú aparezca justo debajo del toggle */
+    left: 0; /* Alinea el menú con el toggle */
+    background-color: #008000; /* Verde */
+    border-radius: 4px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    z-index: 10;
+    margin-top: 5px; /* Agrega un pequeño espacio entre el toggle y el menú */
+}
+
+.dropdown:hover .dropdown__menu {
+    display: block; /* Muestra el menú al pasar el mouse sobre el dropdown */
+}
+
+.dropdown__menu a {
+    display: block; /* Asegura que cada enlace ocupe una línea completa */
+    padding: 8px 15px; /* Agrega espacio interno entre los valores */
+    margin: 5px 0; /* Agrega espacio entre los valores */
+    color: #fff; /* Blanco */
+    text-decoration: none;
+    border-radius: 4px; /* Bordes redondeados */
+    transition: background-color 0.3s ease, transform 0.3s ease; /* Transición suave */
+}
+
+.dropdown__menu a:hover {
+    background-color: #006400; /* Verde oscuro */
+    transform: scale(1.05); /* Aumenta ligeramente el tamaño al pasar el mouse */
+}
+
+/* Submenú oculto por defecto */
+.dropdown__submenu {
+    display: none; /* Oculta las subopciones por defecto */
+    margin-left: 20px; /* Desplaza las subopciones hacia la derecha */
+    padding-top: 5px; /* Agrega espacio superior entre las subopciones */
+}
+
+/* Subopciones con un color complementario */
+.dropdown__submenu a {
+    background-color: #00a000; /* Verde complementario */
+    color: #fff; /* Blanco */
+    padding: 8px 15px; /* Espaciado interno */
+    margin: 5px 0; /* Espaciado entre las opciones */
+    border-radius: 4px; /* Bordes redondeados */
+    display: block; /* Cada enlace ocupa una línea completa */
+    text-decoration: none;
+    transition: background-color 0.3s ease, transform 0.3s ease; /* Transición suave */
+}
+
+.dropdown__submenu a:hover {
+    background-color: #007700; /* Verde más oscuro al pasar el mouse */
+    transform: scale(1.05); /* Aumenta ligeramente el tamaño */
+}
+
+/* Content */
+.content {
+    flex: 1; /* Hace que el contenido ocupe el espacio vertical restante */
+    width: 90%; /* Abarca casi todo el ancho disponible */
+    margin: 10px auto; /* Deja un pequeño espacio a los lados */
+    padding: 20px;
+    background-color: #fff; /* Fondo blanco */
+    border-radius: 8px; /* Bordes redondeados */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Sombra para destacar el contenido */
+    color: #000; /* Negro */
+}
+
+/* Footer */
+.footer {
+    background-color: rgba(245, 245, 220); /* Mismo color que el body */
+    color: #000; /* Texto negro */
+    text-align: center;
+    padding: 10px 0;
+    font-size: 0.9rem;
+    margin-top: auto; /* Empuja el footer al final del body */
+    width: 100%; /* Abarca todo el ancho */
+}

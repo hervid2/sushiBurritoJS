@@ -1,0 +1,87 @@
+/*
+ * Estilos para la gestión de usuarios en el panel de administración
+ */
+
+ .users-management {
+  padding: 2rem 0;
+}
+
+.users-management__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.users-management__title {
+  color: var(--color-primary);
+  font-size: var(--text-2xl);
+  margin: 0;
+}
+
+.users-management__actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.user-form {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 2rem;
+}
+
+.user-form__title {
+  font-size: var(--text-xl);
+  color: var(--color-primary);
+  margin-bottom: 1.5rem;
+}
+
+.user-form__group {
+  margin-bottom: 1.5rem;
+}
+
+.user-form__label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: var(--font-medium);
+  color: var(--color-text);
+}
+
+.user-form__input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-small);
+  font-size: var(--text-base);
+}
+
+.user-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .users-management__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .users-management__actions {
+    width: 100%;
+  }
+  
+  .user-form__actions {
+    flex-direction: column;
+  }
+  
+  .user-form__actions .btn {
+    width: 100%;
+  }
+}

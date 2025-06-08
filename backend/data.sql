@@ -1,81 +1,130 @@
--- Crear una contraseña para el usuario root
-ALTER USER 'root'@'localhost' IDENTIFIED BY 'MYSQLKey2025';
-FLUSH PRIVILEGES;
 -- Crear el usuario
-CREATE USER 'sushiBurrito'@'localhost' IDENTIFIED BY 'SBDataBaseKey2025';
+CREATE USER if not exists 'sushiBurrito'@'localhost' IDENTIFIED BY 'SBDataBaseKey2025';
 
 #Creamos la base de datos
-CREATE DATABASE sushiBurrito_DB CHARACTER SET utf8mb4;
+CREATE DATABASE sushiBurritoJS_DB CHARACTER SET utf8mb4;
 
 #Asignamos la base de datos al usuario y le damos todos los permisos
-GRANT ALL PRIVILEGES ON sushiBurrito_DB.* TO "sushiBurrito"@"localhost";
+GRANT ALL PRIVILEGES ON sushiBurritoJS_DB.* TO "sushiBurrito"@"localhost";
 
 #Refrescamos los permisos de todo el sistema
 FLUSH PRIVILEGES;
 
 -- seleccionamos la base de datos
-use sushiBurrito_DB;
+use sushiBurritoJS_DB;
 
+#Scripts para la creación de las diferentes tablas:
 
--- Tabla usuarios (roles del sistema)
-CREATE TABLE usuarios (
-  usuario_id INT AUTO_INCREMENT PRIMARY KEY,
-  nombre VARCHAR(100) NOT NULL,
-  rol ENUM('administrador','mesero','cocinero') NOT NULL,
-  correo VARCHAR(100) UNIQUE,
-  contraseña VARCHAR(255) NOT NULL
-);
-
-
---  Tabla productos (cada uno de los platillos  del menú)
-CREATE TABLE productos (
-  producto_id    INT AUTO_INCREMENT PRIMARY KEY,
-  nombre         VARCHAR(100) NOT NULL,
-  ingredientes   TEXT,
-  valor_neto     DECIMAL(10,2),
-  valor_venta    DECIMAL(10,2),
-  impuesto       DECIMAL(5,2)    COMMENT 'Tasa de impuesto (%)',
-  valor_total    DECIMAL(10,2)
-);
-
--- Tabla Categorías para categorizar los productos
+-- 1. Tabla categorias: Para categorizar los productos
+-- No tiene dependencias externas.
 CREATE TABLE categorias (
   categoria_id INT AUTO_INCREMENT PRIMARY KEY,
-  nombre VARCHAR(50) NOT NULL UNIQUE
+  nombre ENUM('entradas','platos_fuertes','bebidas','acompañamientos','infantil','postres') NOT NULL UNIQUE COMMENT 'Define tipos de categorías de productos.'
 );
 
+-- 2. Tabla usuarios: Almacena información de los empleados del sistema 
+-- No tiene dependencias externas.
+CREATE TABLE usuarios (
+  usuario_id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100) NOT NULL COMMENT 'Nombre completo del usuario.',
+  rol ENUM('administrador','mesero','cocinero') NOT NULL COMMENT 'Rol del usuario en el sistema.',
+  correo VARCHAR(100) UNIQUE COMMENT 'Correo electrónico único del usuario.',
+  contraseña VARCHAR(255) NOT NULL COMMENT 'Contraseña cifrada del usuario con hash.'
+);
 
---  Tabla pedidos (Aquí el pedido junto con su estado de preparación)
+-- 3. Tabla productos: Cada platillo o artículo del menú.
+-- Depende de 'categorias'.
+CREATE TABLE productos (
+  producto_id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre_producto VARCHAR(100) NOT NULL COMMENT 'Nombre del producto o platillo.',
+  descripcion_ingredientes TEXT COMMENT 'Descripción de los ingredientes o del platillo.',
+  valor_neto DECIMAL(10,2) NOT NULL COMMENT 'Precio base del producto sin impuestos.',
+  categoria_id INT,
+  FOREIGN KEY (categoria_id) REFERENCES categorias(categoria_id)
+);
+
+-- 4. Tabla mesas: Para la gestión de las mesas del restaurante.
+-- No tiene dependencias externas.
+CREATE TABLE mesas (
+  mesa_id INT AUTO_INCREMENT PRIMARY KEY,
+  numero_mesa INT NOT NULL UNIQUE COMMENT 'Número único de la mesa.',
+  estado ENUM('disponible','ocupada','limpieza','inactiva') NOT NULL DEFAULT 'disponible' COMMENT 'Estado actual de la mesa.'
+);
+
+-- 5. Tabla pedidos: Representa un pedido realizado en una mesa.
+-- Depende de 'usuarios' (para el mesero que tomó el pedido) y 'mesas'.
 CREATE TABLE pedidos (
   pedido_id INT AUTO_INCREMENT PRIMARY KEY,
-  usuario_id INT,
-  mesa INT,
-  estado ENUM('pendiente','en_preparacion','preparado','entregado','pagado') NOT NULL DEFAULT 'pendiente',
-  fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id)
+  usuario_id INT COMMENT 'ID del mesero que tomó el pedido.',
+  mesa_id INT COMMENT 'ID de la mesa asociada al pedido.',
+  estado ENUM('pendiente','en_preparacion','preparado','entregado','pagado','cancelado') NOT NULL DEFAULT 'pendiente' COMMENT 'Estado de preparación y pago del pedido',
+  fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha y hora de creación del pedido.',
+  fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Última fecha y hora de modificación del pedido, se actualiza automáticamente.',
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id),
+  FOREIGN KEY (mesa_id) REFERENCES mesas(mesa_id)
 );
 
---  Tabla detalle_pedido (Son los detalles del pedido: platos, notas, cantidad, id de pedido)
+-- 6. Tabla detalle_pedido: Contiene los productos específicos de cada pedido.
+-- Es la tabla pivote entre 'pedidos' y 'productos'.
+-- Depende de 'pedidos' y 'productos'.
 CREATE TABLE detalle_pedido (
   detalle_id INT AUTO_INCREMENT PRIMARY KEY,
   pedido_id INT,
   producto_id INT,
-  cantidad INT NOT NULL,
-  notas TEXT,
-  FOREIGN KEY (pedido_id) REFERENCES pedidos(pedido_id),
-  FOREIGN KEY (producto_id) REFERENCES productos(producto_id)
+  cantidad INT NOT NULL CHECK (cantidad > 0) COMMENT 'Cantidad del producto en el pedido (debe ser mayor a 0).',
+  notas TEXT COMMENT 'Notas adicionales para este producto específico (ej. "sin cebolla").',
+  FOREIGN KEY (producto_id) REFERENCES productos(producto_id),
+  FOREIGN KEY (pedido_id) REFERENCES pedidos(pedido_id) ON DELETE CASCADE
 );
 
---  Tabla facturas
+-- 7. Tabla metodos_pago: Para registrar los diferentes métodos de pago aceptados.
+-- No tiene dependencias externas.
+CREATE TABLE metodos_pago (
+  metodo_pago_id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre_metodo VARCHAR(50) NOT NULL UNIQUE COMMENT 'Nombre del método de pago (ej. Efectivo, Tarjeta de Crédito, Transferencia).'
+);
+
+-- 8. Tabla facturas: Almacena el resumen de las transacciones de pago.
+-- Depende de 'pedidos' y 'metodos_pago'.
 CREATE TABLE facturas (
   factura_id INT AUTO_INCREMENT PRIMARY KEY,
-  pedido_id INT,
-  subtotal DECIMAL(10,2),
-  impuesto_total DECIMAL(10,2),
-  total DECIMAL(10,2),
-  fecha_factura DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (pedido_id) REFERENCES pedidos(pedido_id)
+  pedido_id INT UNIQUE COMMENT 'ID del pedido asociado a esta factura (una factura por pedido).',
+  subtotal DECIMAL(10,2) NOT NULL COMMENT 'Suma de los valores netos de los productos del pedido.',
+  impuesto_total DECIMAL(10,2) NOT NULL COMMENT 'Suma total de los impuestos aplicados.',
+  propina DECIMAL(10, 2) NULL DEFAULT 0.0 COMMENT 'Valor de la propina, por defecto 0.0.',
+  total DECIMAL(10,2) NOT NULL COMMENT 'Monto total de la factura, incluyendo subtotal, impuestos y propina.',
+  fecha_factura DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha y hora de emisión de la factura.',
+  metodo_pago_id INT COMMENT 'ID del método de pago utilizado.',
+  FOREIGN KEY (pedido_id) REFERENCES pedidos(pedido_id),
+  FOREIGN KEY (metodo_pago_id) REFERENCES metodos_pago(metodo_pago_id)
 );
+
+
+
+-- 9. Tabla proveedores: Información de los proveedores de ingredientes y otros suministros.
+-- No tiene dependencias externas.
+CREATE TABLE proveedores (
+  proveedor_id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre_proveedor VARCHAR(100) NOT NULL UNIQUE COMMENT 'Nombre único del proveedor.',
+  contacto_nombre VARCHAR(100) COMMENT 'Nombre de la persona de contacto en el proveedor.',
+  contacto_telefono VARCHAR(20) COMMENT 'Número de teléfono del contacto.',
+  contacto_email VARCHAR(100) COMMENT 'Correo electrónico del contacto.',
+  direccion VARCHAR(255) COMMENT 'Dirección del proveedor.'
+);
+
+
+
+-- 10. Tabla turnos_empleados: Para gestionar los turnos de trabajo de los usuarios (empleados).
+-- Depende de 'usuarios'.
+CREATE TABLE turnos_empleados (
+  turno_id INT AUTO_INCREMENT PRIMARY KEY,
+  usuario_id INT COMMENT 'ID del usuario (empleado) asignado a este turno.',
+  fecha_turno DATE NOT NULL COMMENT 'Fecha del turno.',
+  hora_inicio TIME NOT NULL COMMENT 'Hora de inicio del turno.',
+  hora_fin TIME NOT NULL COMMENT 'Hora de fin del turno.',
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id)
+);
+
 
 
 -- scripts para manipular el CRUD:
@@ -94,7 +143,7 @@ ALTER TABLE productos MODIFY COLUMN impuesto DECIMAL(10,2);
 ALTER TABLE productos ADD COLUMN categoria_id INT, ADD CONSTRAINT fk_categoria FOREIGN KEY (categoria_id) REFERENCES categorias(categoria_id);
 ALTER TABLE pedidos ADD COLUMN fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE facturas;
-ALTER TABLE facturas ADD COLUMN propina DECIMAL(10, 2) NOT NULL DEFAULT 0.0; -- Añade con un valor por defecto de 0.0
+ALTER TABLE facturas ADD COLUMN propina DECIMAL(10, 2) NOT NULL DEFAULT 0.0;
 ALTER TABLE pedidos ADD COLUMN producto TEXT NOT NULL, ADD COLUMN producto_categoria TEXT NOT NULL, ADD COLUMN hora_entrada DATETIME;
 ALTER TABLE pedidos MODIFY COLUMN estado VARCHAR(30) NOT NULL;
 

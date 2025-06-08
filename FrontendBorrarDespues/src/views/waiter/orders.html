@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesero - Sushi Burrito</title>
+    <link rel="stylesheet" href="../../assets/css/main.css">
+</head>
+<body>
+    <!-- Header -->
+    <div data-include="../../views/shared/header.html"></div>
+    
+    <!-- Navigation para mesero -->
+    <nav class="nav nav--waiter">
+        <div class="dropdown">
+            <button class="dropdown__toggle">Mesas</button>
+            <div class="dropdown__menu">
+                <a href="#" class="dropdown__item" data-status="all">Todas las Mesas</a>
+                <a href="#" class="dropdown__item" data-status="occupied">Ocupadas</a>
+                <a href="#" class="dropdown__item" data-status="available">Disponibles</a>
+            </div>
+        </div>
+        <a href="orders.html" class="nav__link nav__link--active">Pedidos</a>
+        <a href="#" class="nav__link">Cuentas</a>
+    </nav>
+
+    <main class="content">
+        <section class="waiter-orders">
+            <h2 class="waiter-orders__title">Gestión de Pedidos</h2>
+            
+            <div class="order-actions">
+                <button class="btn btn--primary" id="new-order-btn">+ Nuevo Pedido</button>
+                <button class="btn btn--secondary" id="refresh-orders-btn">Actualizar</button>
+            </div>
+            
+            <div class="tables-grid" id="tables-grid">
+                <!-- Mesas se cargarán dinámicamente -->
+                <div class="loading-message">Cargando mesas...</div>
+            </div>
+            
+            <div class="order-details" id="order-details" style="display: none;">
+                <!-- Detalles del pedido se cargarán dinámicamente -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal para nuevo pedido -->
+    <div id="order-modal" class="modal">
+        <div class="modal__content">
+            <div class="modal__header">
+                <h3 class="modal__title">Nuevo Pedido</h3>
+                <button class="modal__close">&times;</button>
+            </div>
+            <div class="modal__body" id="order-modal-body">
+                <!-- Contenido del modal se cargará dinámicamente -->
+            </div>
+            <div class="modal__footer">
+                <button id="cancel-order" class="btn btn--secondary">Cancelar</button>
+                <button id="submit-order" class="btn btn--primary">Confirmar Pedido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div data-include="../../views/shared/footer.html"></div>
+
+    <script src="../../controllers/waiter/orders.controller.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const includes = document.querySelectorAll('[data-include]');
+            includes.forEach(include => {
+                fetch(include.getAttribute('data-include'))
+                    .then(response => response.text())
+                    .then(data => include.outerHTML = data);
+            });
+        });
+    </script>
+</body>
+</html>

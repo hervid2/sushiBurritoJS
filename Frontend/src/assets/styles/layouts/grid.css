@@ -1,0 +1,90 @@
+/*
+ * Sistema de grid para layouts flexibles
+ * Utilizado en las páginas principales
+ */
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.grid--2cols {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid--3cols {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.grid--4cols {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.flex {
+  display: flex;
+}
+
+.flex--column {
+  flex-direction: column;
+}
+
+.flex--center {
+  justify-content: center;
+  align-items: center;
+}
+
+.flex--between {
+  justify-content: space-between;
+}
+
+.flex--around {
+  justify-content: space-around;
+}
+
+.gap-sm {
+  gap: 0.5rem;
+}
+
+.gap-md {
+  gap: 1rem;
+}
+
+.gap-lg {
+  gap: 1.5rem;
+}
+
+/* Clases para el layout de autenticación */
+.auth-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.auth-layout__left {
+  flex: 1;
+  position: relative;
+}
+
+.auth-layout__right {
+  flex: 1;
+  background-color: rgba(245, 245, 220, 0.9);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .auth-layout {
+    flex-direction: column;
+  }
+  
+  .grid--2cols,
+  .grid--3cols,
+  .grid--4cols {
+    grid-template-columns: 1fr;
+  }
+}
