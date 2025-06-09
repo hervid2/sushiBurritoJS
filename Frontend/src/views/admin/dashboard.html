@@ -1,0 +1,44 @@
+<div class="dashboard-page">
+    <h2 class="dashboard-title">Dashboard de Administrador</h2>
+
+    <section class="dashboard-summary">
+        <div class="summary-card">
+            <h3>Pedidos Pendientes</h3>
+            <p id="pending-orders-count">Cargando...</p>
+            <a href="#/kitchenOrders" class="summary-link">Ver Pedidos</a>
+        </div>
+        <div class="summary-card">
+            <h3>Usuarios Registrados</h3>
+            <p id="registered-users-count">Cargando...</p>
+            <a href="#/admin/users" class="summary-link">Gestionar Usuarios</a>
+        </div>
+        <div class="summary-card">
+            <h3>Platos en Menú</h3>
+            <p id="menu-items-count">Cargando...</p>
+            <a href="#/admin/menu" class="summary-link">Gestionar Menú</a>
+        </div>
+        <div class="summary-card">
+            <h3>Ventas Diarias</h3>
+            <p id="daily-sales-amount">Cargando...</p>
+            <a href="#/admin/stats" class="summary-link">Ver Estadísticas</a>
+        </div>
+    </section>
+
+    <section class="dashboard-charts">
+        <h3>Gráficos Rápidos</h3>
+        <div class="chart-container">
+            <div id="sales-chart" class="chart-placeholder">Gráfico de Ventas Mensuales</div>
+            <div id="popular-items-chart" class="chart-placeholder">Gráfico de Productos Más Populares</div>
+        </div>
+    </section>
+
+    <section class="dashboard-recent-activity">
+        <h3>Actividad Reciente</h3>
+        <ul id="activity-list" class="activity-list">
+            <li><span class="activity-date">2025-06-08 10:30 AM:</span> Nuevo pedido #1234 de Mesa 5</li>
+            <li><span class="activity-date">2025-06-08 09:15 AM:</span> Usuario 'juanp' actualizado por admin</li>
+            <li><span class="activity-date">2025-06-07 05:00 PM:</span> Plato "Roll California" editado</li>
+            </ul>
+        <button class="btn btn--secondary">Cargar más actividad</button>
+    </section>
+</div>

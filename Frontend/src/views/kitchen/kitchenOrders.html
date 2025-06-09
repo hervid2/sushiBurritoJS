@@ -1,0 +1,24 @@
+<div class="kitchen-orders-page">
+    <div class="kitchen-orders__header">
+        <h2 class="kitchen-orders__title">Gestión de Pedidos de Cocina</h2>
+    </div>
+    
+    <div class="order-filters-container">
+        <div class="form-group">
+            <label for="order-filter" class="form-label">Mostrar:</label>
+            <select id="order-filter" class="form-select">
+                <option value="pending">Pedidos Pendientes</option>
+                <option value="preparing">Pedidos En Preparación</option>
+                <option value="ready">Pedidos Listos</option>
+                <option value="completed">Historial de Pedidos (Completados)</option>
+            </select>
+        </div>
+        <button id="refresh-orders-btn" class="btn btn--secondary">
+            <i class="fas fa-sync-alt"></i> Actualizar
+        </button>
+    </div>
+    
+    <div class="orders-list" id="orders-list">
+        <div class="loading-message">Cargando pedidos...</div>
+    </div>
+</div>

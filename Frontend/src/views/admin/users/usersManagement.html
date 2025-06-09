@@ -1,0 +1,84 @@
+<div class="users-management-page">
+    <div class="users-management__header">
+        <h2 class="users-management__title">Gestión de Usuarios</h2>
+        <button class="btn btn--primary" id="add-user-btn">
+            <i class="fas fa-plus"></i> Nuevo Usuario
+        </button>
+    </div>
+
+    <section class="user-form-section" id="user-form-section" style="display: none;">
+        <h3><span id="form-title">Añadir Nuevo Usuario</span></h3>
+        <form id="user-form" class="management-form">
+            <input type="hidden" id="user-id">
+
+            <div class="form-group">
+                <label for="name">Nombre:</label>
+                <input type="text" id="name" class="form-input" placeholder="Nombre completo del usuario" required>
+            </div>
+            <div class="form-group">
+                <label for="username">Nombre de Usuario:</label>
+                <input type="text" id="username" class="form-input" placeholder="Nombre de usuario único" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" class="form-input" placeholder="correo@example.com" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Contraseña:</label>
+                <input type="password" id="password" class="form-input" placeholder="Deja vacío para no cambiar en edición">
+                <small class="form-text-muted">Necesaria para nuevos usuarios; opcional para editar.</small>
+            </div>
+            <div class="form-group">
+                <label for="role">Rol:</label>
+                <select id="role" class="form-select" required>
+                    <option value="client">Cliente</option>
+                    <option value="waiter">Mesero</option>
+                    <option value="kitchen">Cocina</option>
+                    <option value="admin">Administrador</option>
+                </select>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn--success" id="save-user-btn">Guardar Usuario</button>
+                <button type="button" class="btn btn--secondary" id="cancel-user-form-btn">Cancelar</button>
+            </div>
+        </form>
+    </section>
+
+    <div class="table-responsive">
+        <table class="table management-table" id="users-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Usuario</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="6" class="loading-message">Cargando usuarios...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="confirm-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Confirmar Eliminación</h4>
+                <button class="close-button" id="close-modal-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro de que desea eliminar al usuario <strong id="user-to-delete-name"></strong>?</p>
+                <p>Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--danger" id="confirm-delete-btn">Eliminar</button>
+                <button class="btn btn--secondary" id="cancel-delete-btn">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>

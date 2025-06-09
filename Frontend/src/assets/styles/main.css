@@ -6,7 +6,7 @@
 /* Variables y reset */
 @import url('./base/variables.css');
 @import url('./base/reset.css');
-@import url('./base/typography.css');
+@import url('./base/tipography.css');
 
 /* Componentes */
 @import url('./components/buttons.css');
@@ -25,6 +25,7 @@
 @import url('./pages/auth/forgot-password.css');
 @import url('./pages/auth/reset-password.css');
 @import url('./pages/admin/users-management.css');
+@import url('./pages/admin/dashboard.css');
 @import url('./pages/kitchen/orders.css');
 @import url('./pages/waiter/tables.css');
 

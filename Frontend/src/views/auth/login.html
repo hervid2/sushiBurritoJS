@@ -1,49 +1,20 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inicio de Sesión - Sushi Burrito</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../assets/css/main.css">
-</head>
-<body>
-    <div class="login-main-container">
-        <!-- Contenedor izquierdo -->
-        <div class="login-left-container">
-            <h1 class="login-page-title">Sistema de gestión Sushi Burrito</h1>
-            <div class="login-logo-container">
-                <img src="../../assets/public/images/logo.jpg" alt="Logo Sushi Burrito" class="login-logo">
+<div class="auth-container">
+    <div class="auth-card">
+        <h2 class="auth-card__title">Iniciar Sesión</h2>
+        <form id="login-form" class="auth-form">
+            <div class="form-group">
+                <label for="login-username" class="form-label">Usuario:</label>
+                <input type="text" id="login-username" class="form-input" placeholder="Tu nombre de usuario" required>
             </div>
-        </div>
-        
-        <!-- Contenedor derecho -->
-        <div class="login-right-container">
-            <div class="login-content-container">
-                <h1>Bienvenido a Sushi Burrito</h1>
-                <h3>Inicia sesión para continuar</h3>
-                <h3>Si no tienes una cuenta, por favor contacta al administrador.</h3>
+            <div class="form-group">
+                <label for="login-password" class="form-label">Contraseña:</label>
+                <input type="password" id="login-password" class="form-input" placeholder="Tu contraseña" required>
             </div>
-            
-            <div class="login-form-container">
-                <form id="login-form">
-                    <label for="username" class="login-form-label">Usuario</label>
-                    <input type="text" id="username" class="login-form-input" placeholder="Usuario" required>
-                    
-                    <label for="password" class="login-form-label">Contraseña</label>
-                    <input type="password" id="password" class="login-form-input" placeholder="Contraseña" required>
-                    
-                    <button type="submit" class="login-form-button">Ingresar</button>
-                </form>
-                <a href="forgot-password.html" class="login-form-link">¿Olvidaste tu contraseña?</a>
-            </div>
+            <button type="submit" class="btn btn--primary btn--block">Entrar</button>
+        </form>
+        <div class="auth-card__footer">
+            <p>¿No tienes cuenta? Los nuevos usuarios son creados por un administrador. Si ya te registraste, <a href="#/register" class="auth-link">Regístrate aquí</a></p>
+            <p><a href="#/forgot-password" class="auth-link">¿Olvidaste tu contraseña?</a></p>
         </div>
     </div>
-    
-    <footer class="login-footer">
-        <p>&copy; 2025 Sushi Burrito. Todos los derechos reservados.</p>
-    </footer>
-
-    <script src="../../controllers/auth/login.controller.js"></script>
-</body>
-</html>
+</div>

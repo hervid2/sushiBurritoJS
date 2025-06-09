@@ -1,114 +1,74 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estadísticas - Sushi Burrito</title>
-    <link rel="stylesheet" href="../../../assets/css/main.css">
-    <!-- Chart.js para gráficos -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-    <!-- Header -->
-    <div data-include="../../../views/shared/header.html"></div>
+<div class="stats-overview-page">
+    <h2 class="stats-overview__title">Estadísticas Generales</h2>
     
-    <!-- Navigation -->
-    <div data-include="../../../views/shared/navigation.html"></div>
-
-    <main class="content">
-        <section class="stats-overview">
-            <h2 class="stats-overview__title">Estadísticas Generales</h2>
-            
-            <div class="stats-filters">
-                <div class="form-group">
-                    <label for="time-range" class="form-label">Rango de Tiempo:</label>
-                    <select id="time-range" class="form-control">
-                        <option value="today">Hoy</option>
-                        <option value="week">Esta Semana</option>
-                        <option value="month" selected>Este Mes</option>
-                        <option value="year">Este Año</option>
-                        <option value="custom">Personalizado</option>
-                    </select>
-                </div>
-                
-                <div id="custom-range" style="display: none;">
-                    <div class="form-group">
-                        <label for="start-date" class="form-label">Desde:</label>
-                        <input type="date" id="start-date" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label for="end-date" class="form-label">Hasta:</label>
-                        <input type="date" id="end-date" class="form-control">
-                    </div>
-                </div>
+    <div class="stats-filters">
+        <div class="form-group">
+            <label for="time-range" class="form-label">Rango de Tiempo:</label>
+            <select id="time-range" class="form-control">
+                <option value="today">Hoy</option>
+                <option value="week">Esta Semana</option>
+                <option value="month" selected>Este Mes</option>
+                <option value="year">Este Año</option>
+                <option value="custom">Personalizado</option>
+            </select>
+        </div>
+        
+        <div id="custom-range" style="display: none;">
+            <div class="form-group">
+                <label for="start-date" class="form-label">Desde:</label>
+                <input type="date" id="start-date" class="form-control">
             </div>
-            
-            <div class="stats-grid">
-                <div class="stat-card stat-card--primary">
-                    <div class="stat-card__value" id="total-orders">0</div>
-                    <div class="stat-card__label">Pedidos Totales</div>
-                </div>
-                
-                <div class="stat-card stat-card--secondary">
-                    <div class="stat-card__value" id="total-revenue">$0</div>
-                    <div class="stat-card__label">Ingresos Totales</div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-card__value" id="avg-order">$0</div>
-                    <div class="stat-card__label">Ticket Promedio</div>
-                </div>
+            <div class="form-group">
+                <label for="end-date" class="form-label">Hasta:</label>
+                <input type="date" id="end-date" class="form-control">
             </div>
-            
-            <div class="charts-container">
-                <div class="chart-card">
-                    <h3 class="chart-card__title">Ventas por Categoría</h3>
-                    <canvas id="category-chart"></canvas>
-                </div>
-                
-                <div class="chart-card">
-                    <h3 class="chart-card__title">Ventas por Día</h3>
-                    <canvas id="daily-sales-chart"></canvas>
-                </div>
-            </div>
-            
-            <div class="top-items">
-                <h3>Ítems Más Populares</h3>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Ítem</th>
-                            <th>Cantidad Vendida</th>
-                            <th>Ingresos Generados</th>
-                        </tr>
-                    </thead>
-                    <tbody id="top-items-list">
-                        <!-- Datos se cargarán dinámicamente -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    </main>
-
-    <!-- Footer -->
-    <div data-include="../../../views/shared/footer.html"></div>
-
-    <script src="../../../controllers/admin/stats.controller.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const includes = document.querySelectorAll('[data-include]');
-            includes.forEach(include => {
-                fetch(include.getAttribute('data-include'))
-                    .then(response => response.text())
-                    .then(data => include.outerHTML = data);
-            });
-            
-            // Mostrar/ocultar rango personalizado
-            document.getElementById('time-range').addEventListener('change', function() {
-                const customRange = document.getElementById('custom-range');
-                customRange.style.display = this.value === 'custom' ? 'block' : 'none';
-            });
-        });
-    </script>
-</body>
-</html>
+        </div>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card stat-card--primary">
+            <div class="stat-card__value" id="total-orders">Cargando...</div>
+            <div class="stat-card__label">Pedidos Totales</div>
+        </div>
+        
+        <div class="stat-card stat-card--secondary">
+            <div class="stat-card__value" id="total-revenue">Cargando...</div>
+            <div class="stat-card__label">Ingresos Totales</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-card__value" id="avg-order">Cargando...</div>
+            <div class="stat-card__label">Ticket Promedio</div>
+        </div>
+    </div>
+    
+    <div class="charts-container">
+        <div class="chart-card">
+            <h3 class="chart-card__title">Ventas por Categoría</h3>
+            <canvas id="category-chart"></canvas>
+        </div>
+        
+        <div class="chart-card">
+            <h3 class="chart-card__title">Ventas por Día</h3>
+            <canvas id="daily-sales-chart"></canvas>
+        </div>
+    </div>
+    
+    <div class="top-items">
+        <h3>Ítems Más Populares</h3>
+        <table class="table management-table">
+            <thead>
+                <tr>
+                    <th>Ítem</th>
+                    <th>Cantidad Vendida</th>
+                    <th>Ingresos Generados</th>
+                </tr>
+            </thead>
+            <tbody id="top-items-list">
+                <tr>
+                    <td colspan="3" class="loading-message">Cargando ítems...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
