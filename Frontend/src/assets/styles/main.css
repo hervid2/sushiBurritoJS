@@ -18,7 +18,7 @@
 @import url('./layouts/header.css');
 @import url('./layouts/footer.css');
 @import url('./layouts/navigation.css');
-@import url('./layouts/grid.css');
+@import url('./layouts/grid.css'); 
 
 /* Páginas */
 @import url('./pages/auth/login.css');
@@ -29,15 +29,49 @@
 @import url('./pages/kitchen/orders.css');
 @import url('./pages/waiter/tables.css');
 
-/* Estilos globales adicionales */
-body {
-  background-color: var(--color-light-bg);
-  color: var(--color-text);
+/* --------------------------------------------------- */
+/* ESTILOS GLOBALES */
+/* --------------------------------------------------- */
+
+/* Asegura que html y body ocupen toda la altura de la ventana */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
 }
+
+/* El body se convierte en un contenedor flex para el sticky footer */
+body {
+    background-color: var(--color-light-bg);
+    color: var(--color-text);
+    display: flex; /* Habilita Flexbox */
+    flex-direction: column; /* Apila los elementos hijos verticalmente */
+    min-height: 100vh; /* Asegura que el body tenga al menos la altura de la ventana */
+    overflow-x: hidden; /* Evita el scroll horizontal */
+}
+
+/* El contenedor principal de la aplicación, que alberga las vistas de la SPA */
+/* Ocupará todo el espacio vertical disponible, empujando el footer hacia abajo */
+main#app {
+    flex-grow: 1; /* Esto es CLAVE: hace que el main ocupe el espacio restante */
+    display: flex; /* Permite a los contenidos de la ruta (login.html, etc.) usar Flexbox */
+    flex-direction: column; /* Por defecto, apilar contenido dentro de la ruta */
+    align-items: center; /* Centra el contenido horizontalmente por defecto si no es de ancho completo */
+    justify-content: center; /* Centra el contenido verticalmente por defecto si es más corto */
+    padding: var(--spacing-medium) 0; /* Padding superior/inferior para el contenido de la app */
+    box-sizing: border-box; /* Asegura que el padding no añada al ancho/alto total */
+}
+
+/* Contenedores del header y footer (si los usas como contenedores principales para esos fragmentos) */
+#header-container, #footer-container {
+    flex-shrink: 0; /* Evita que se encojan si hay poco espacio */
+    width: 100%; /* Asegura que ocupen todo el ancho */
+}
+
 
 /* Clases de utilidad (opcional) */
 .text-center {
-  text-align: center;
+    text-align: center;
 }
 
 .mt-1 { margin-top: var(--spacing-small); }
@@ -47,10 +81,10 @@ body {
 
 /* Animaciones */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .fade-in {
-  animation: fadeIn var(--transition-normal) forwards;
+    animation: fadeIn var(--transition-normal) forwards;
 }

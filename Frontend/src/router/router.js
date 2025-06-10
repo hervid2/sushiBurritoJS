@@ -51,28 +51,28 @@ export const routes = {
     "admin/dashboard": {
         "template": "admin/dashboard/dashboard.html",
         controlador: dashboardController,
-        private: true,
+        private: false,
         requiresRole: ['admin', 'waiter', 'kitchen'], // Roles que pueden acceder
         title: "Dashboard Administrativo" // Título para el dashboard
     },
     "admin/users": {
         "template": "admin/users/usersManagement.html",
         controlador: usersController,
-        private: true,
+        private: false,
         requiresRole: 'admin', // Solo el admin puede gestionar usuarios
         title: "Gestión de Usuarios" // Título
     },
     "admin/menu": {
         "template": "admin/menu/menuManagement.html",
         controlador: menuController,
-        private: true,
+        private: false,
         requiresRole: 'admin', // Solo el admin puede gestionar el menú
         title: "Gestión de Menú" // Título
     },
     "admin/stats": {
         "template": "admin/stats/statsOverview.html",
         controlador: statsController,
-        private: true,
+        private: false,
         requiresRole: 'admin', // Solo el admin puede ver estadísticas
         title: "Estadísticas" // Título
     },
@@ -81,7 +81,7 @@ export const routes = {
     "kitchen/orders": {
         "template": "kitchen/kitchenOrders.html",
         controlador: kitchenOrdersController,
-        private: true,
+        private: false,
         requiresRole: 'kitchen', // Solo el rol 'kitchen' puede acceder
         title: "Pedidos de Cocina" // Título
     },
@@ -90,7 +90,7 @@ export const routes = {
     "waiter/orders": { 
         "template": "waiter/waiterOrders.html", 
         controlador: waiterOrdersController,
-        private: true,
+        private: false,
         requiresRole: 'waiter',
         title: "Pedidos de Mesero" // Título
     },
@@ -110,6 +110,9 @@ export const routes = {
  */
 export const loadContent = async () => {
     let path = window.location.hash.substring(1); // Obtiene la ruta del hash (ej. 'admin/dashboard')
+    if (path.startsWith('/')) { // Elimina el '/' inicial si existe
+        path = path.substring(1);
+    }
     const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true'; // Verifica el estado de autenticación
     const userRole = localStorage.getItem('userRole'); // Obtiene el rol del usuario autenticado
 

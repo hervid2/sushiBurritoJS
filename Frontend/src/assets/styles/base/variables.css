@@ -1,44 +1,54 @@
-/* 
+/*
  * Variables CSS globales para el proyecto Sushi Burrito
  * Colores corporativos y valores reutilizables
  */
 
- :root {
-  /* Colores principales */
-  --color-primary: #e76005;    /* Naranja corporativo */
-  --color-secondary: #008000;  /* Verde corporativo */
-  --color-light-bg: #f5f5dc;   /* Beige claro de fondo */
-  
-  /* Colores de texto */
-  --color-text: #000000;       /* Negro para texto principal */
-  --color-text-light: #ffffff; /* Blanco para texto sobre fondos oscuros */
-  
-  /* Colores de estado */
-  --color-success: #28a745;
-  --color-warning: #ffc107;
-  --color-danger: #dc3545;
-  --color-info: #17a2b8;
-  
-  /* Espaciados */
-  --spacing-unit: 1rem;
-  --spacing-small: calc(var(--spacing-unit) * 0.5);
-  --spacing-medium: var(--spacing-unit);
-  --spacing-large: calc(var(--spacing-unit) * 1.5);
-  --spacing-xlarge: calc(var(--spacing-unit) * 2);
-  
-  /* Bordes */
-  --border-radius: 8px;
-  --border-radius-small: 4px;
-  --border-width: 1px;
-  --border-color: #dddddd;
-  
-  /* Sombras */
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.2);
-  --shadow-lg: 0 6px 15px rgba(0, 0, 0, 0.3);
-  
-  /* Transiciones */
-  --transition-fast: 0.15s ease;
-  --transition-normal: 0.3s ease;
-  --transition-slow: 0.5s ease;
+:root {
+    /* Colores */
+    --color-primary: #FF5722; /* Naranja (o tu color principal) */
+    --color-primary-dark: #E64A19; /* Naranja más oscuro */
+    --color-secondary: #4CAF50; /* Verde (o tu color secundario) */
+    --color-background: #FFFFFF; /* Fondo de contenedores/cards */
+    --color-light-bg: #F5F5DC; /* Fondo general de la página (beige claro) */
+    --color-text: #333333; /* Color de texto oscuro */
+    --color-text-light: #F8F8F8; /* Color de texto claro (casi blanco) */
+    --color-border: #CCCCCC; /* Color para bordes */
+    --color-error: #D32F2F; /* Rojo para errores */
+    --color-info: #2196F3; /* Azul para información */
+    --color-success: #4CAF50; /* Verde para éxito */
+    --color-pastel-gray:#868b8d; 
+    
+
+    /* Espaciado */
+    --spacing-extra-small: 5px;
+    --spacing-small: 10px;
+    --spacing-medium: 20px;
+    --spacing-large: 30px;
+    --spacing-xlarge: 40px;
+
+    /* Tamaños de fuente */
+    --font-size-small: 0.875rem;
+    --font-size-normal: 1rem;
+    --font-size-large: 1.125rem;
+    --font-size-h1: 2.5rem;
+    --font-size-h2: 2rem;
+    --font-size-h3: 1.75rem;
+    --font-size-h4: 1.5rem;
+
+    /* Border Radius */
+    --border-radius-small: 4px;
+    --border-radius: 8px;
+    --border-radius-large: 20px;
+
+    /* Sombras */
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    --shadow-md: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+    --shadow-lg: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+
+    /* Transiciones */
+    --transition-normal: 0.3s ease-in-out;
+
+    /* Alturas de Header y Footer (aproximadas, ajusta según tu diseño) */
+    --header-height: 120px;
+    --footer-height: 60px;
 }
