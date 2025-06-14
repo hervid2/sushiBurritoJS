@@ -20,7 +20,7 @@
 }
 
 .btn--primary:hover {
-  background-color: #006400; /* Verde oscuro */
+  background-color: var(--color-secondary-dark); /* Verde oscuro */
   transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
 }

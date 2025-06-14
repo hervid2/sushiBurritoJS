@@ -8,6 +8,7 @@
     --color-primary: #FF5722; /* Naranja (o tu color principal) */
     --color-primary-dark: #E64A19; /* Naranja más oscuro */
     --color-secondary: #4CAF50; /* Verde (o tu color secundario) */
+    --color-secondary-dark: #006400;/* Verde oscuro para el hover del botón*/
     --color-background: #FFFFFF; /* Fondo de contenedores/cards */
     --color-light-bg: #F5F5DC; /* Fondo general de la página (beige claro) */
     --color-text: #333333; /* Color de texto oscuro */

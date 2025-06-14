@@ -4,6 +4,7 @@
 
 /* Estructura principal de la página de login */
 .login-main-container {
+    width: 80%;
     font-family: 'Poppins', Arial, sans-serif;
     margin: 0;
     padding: 0;
@@ -20,7 +21,7 @@
 .login-content-wrapper {
     display: flex;
     flex-grow: 1;
-    width: 80%; /* Ocupa el 80% del ancho disponible */
+    width: 100%; /* Ocupa el 80% del ancho disponible */
     max-width: 1400px; /* Límite superior para pantallas muy grandes */
     margin: 0 auto;
     box-shadow: var(--shadow-lg);
@@ -39,7 +40,6 @@
     padding: var(--spacing-large);
     position: relative;
     overflow: hidden;
-    /* background-color: var(--color-primary-dark); */ /* Se mantiene comentado */
     color: var(--color-text-light);
 }
 
@@ -81,7 +81,7 @@
     justify-content: center;
     align-items: center;
     padding: var(--spacing-large);
-    background-color: var(--color-light-bg);
+    background-color: var(--color-secondary); 
     color: var(--color-text);
 }
 
@@ -132,7 +132,7 @@
     padding-top: var(--spacing-medium);
     border-top: 1px solid var(--color-border);
     font-size: var(--font-size-small);
-    color: var(--color-text-light);
+    color: var(--color-text);
 }
 
 .auth-link {
