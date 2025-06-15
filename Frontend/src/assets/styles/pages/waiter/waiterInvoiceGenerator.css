@@ -1,0 +1,156 @@
+/*
+ * Estilos específicos para la vista de Generar Factura del Mesero
+ * (src/views/waiter/waiterInvoiceGenerator.html)
+ */
+
+ .invoice-generator-page {
+  padding: 2rem;
+}
+
+.invoice-generator__header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.invoice-generator__title {
+  color: var(--color-primary); /* Usa tu color primario */
+  font-size: var(--text-2xl); /* Usa tu tamaño de texto 2xl */
+  margin-bottom: 1rem;
+}
+
+.invoice-form-section {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: var(--border-radius); /* Usa tu variable de radio de borde */
+  box-shadow: var(--shadow-sm); /* Usa tu variable de sombra */
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: flex-end; /* Alinea los ítems en la parte inferior */
+  gap: 1rem; /* Espacio entre elementos */
+  flex-wrap: wrap; /* Permite que los elementos se envuelvan en pantallas pequeñas */
+}
+
+.invoice-form-section .form-group {
+  flex-grow: 1; /* Permite que el grupo de formulario ocupe el espacio disponible */
+  margin-bottom: 0; /* Anula el margin-bottom predeterminado si el .form-group lo tiene */
+}
+
+.invoice-form-section .form-label {
+  font-weight: var(--font-medium); /* Usa tu peso de fuente medio */
+  color: var(--color-text);
+  display: block; /* Asegura que la etiqueta esté en su propia línea */
+  margin-bottom: 0.5rem;
+}
+
+.invoice-form-section .form-select {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color); /* Usa tu color de borde */
+  border-radius: var(--border-radius-small); /* Usa tu variable de radio de borde pequeño */
+  font-size: var(--text-base); /* Usa tu tamaño de texto base */
+  background-color: white;
+  appearance: none; /* Elimina estilos por defecto del select en algunos navegadores */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236c757d'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E"); /* Icono de flecha */
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 12px;
+}
+
+.invoice-form-section .btn {
+  /* Los estilos de .btn--primary ya los tienes en buttons.css */
+  flex-shrink: 0; /* Evita que el botón se encoja */
+}
+
+.invoice-details-section {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 2rem;
+}
+
+.invoice-details-section .section-title {
+  color: var(--color-primary);
+  font-size: var(--text-xl);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Reutilizando estilos de .table-container y .data-table de tables.css */
+.invoice-details-section .table-container {
+  /* No se requieren ajustes adicionales aquí si tus clases globales son suficientes */
+}
+
+.invoice-details-section .data-table {
+  /* Asegúrate de que tu HTML use la clase 'data-table'. */
+}
+
+.invoice-details-section .data-table tfoot td {
+  font-size: var(--text-lg); /* Tamaño de texto grande para totales */
+  font-weight: var(--font-bold); /* Negrita */
+  background-color: var(--color-background-light); /* Fondo claro para el pie de tabla */
+  padding: 1rem;
+  border-top: 2px solid var(--color-primary); /* Borde superior más grueso */
+}
+
+.invoice-details-section .data-table .text-right {
+  text-align: right;
+}
+
+/* Estilos para el select de método de pago dentro de la tabla */
+.payment-method-select {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-small);
+  background-color: white;
+  font-size: var(--text-sm);
+  box-sizing: border-box; /* Asegura que padding y border se incluyan en el ancho */
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236c757d'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 12px;
+}
+
+.invoice-details-section .remove-item-btn {
+  /* Usa tu .btn--danger y .btn--small */
+}
+
+.invoice-actions {
+  text-align: right;
+  padding-bottom: 2rem; /* Espacio en la parte inferior de la página */
+}
+
+.invoice-actions .btn {
+  /* Usa tu .btn--success */
+}
+
+/* Mensajes de tablas vacías */
+.invoice-generator-page .empty-message,
+.invoice-generator-page .loading-message {
+  text-align: center;
+  padding: 2rem;
+  font-size: var(--text-lg);
+  color: var(--color-text-light);
+}
+
+/* Reutilizando estilos de paginación de orders.css */
+.invoice-generator-page .pagination-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 1rem; /* Un poco menos para no chocar con el botón de finalizar factura */
+}
+
+/* Responsive para la sección de formulario de factura */
+@media (max-width: 768px) {
+  .invoice-form-section {
+      flex-direction: column; /* Apila los elementos en columnas */
+      align-items: stretch; /* Estira los elementos para ocupar el ancho */
+  }
+  .invoice-form-section .btn {
+      width: 100%; /* El botón ocupa todo el ancho */
+  }
+}

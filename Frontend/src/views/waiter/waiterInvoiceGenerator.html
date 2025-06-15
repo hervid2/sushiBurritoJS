@@ -1,0 +1,51 @@
+<div class="invoice-generator-page">
+  <div class="invoice-generator__header">
+      <h2 class="invoice-generator__title">Generar Factura</h2>
+  </div>
+
+  <div class="invoice-form-section">
+      <div class="form-group">
+          <label for="select-order-for-invoice" class="form-label">Seleccionar Pedido:</label>
+          <select id="select-order-for-invoice" class="form-select">
+              <option value="">-- Seleccione un pedido --</option>
+              </select>
+      </div>
+      <button id="load-invoice-details-btn" class="btn btn--primary">Cargar Detalles del Pedido</button>
+  </div>
+
+  <div class="invoice-details-section">
+      <h3 class="section-title">Detalle de la Factura</h3>
+      <div class="table-container">
+          <table class="data-table" id="invoice-items-table">
+              <thead>
+                  <tr>
+                      <th>Pedido ID</th>
+                      <th>Descripción Producto</th>
+                      <th>Cantidad</th>
+                      <th>Subtotal</th>
+                      <th>Impuesto Consumo</th>
+                      <th>Total</th>
+                      <th>Método Pago</th>
+                      <th>Acción</th>
+                  </tr>
+              </thead>
+              <tbody id="invoice-items-table-body">
+                  <tr><td colspan="8" class="empty-message">Seleccione un pedido para ver sus detalles.</td></tr>
+              </tbody>
+              <tfoot>
+                  <tr>
+                      <td colspan="5" class="text-right"><strong>Total General:</strong></td>
+                      <td id="grand-total-amount">0.00</td>
+                      <td></td>
+                      <td></td>
+                  </tr>
+              </tfoot>
+          </table>
+      </div>
+      <div class="pagination-container" id="invoice-pagination"></div>
+  </div>
+
+  <div class="invoice-actions">
+      <button id="finalize-invoice-btn" class="btn btn--success">Generar Factura Final</button>
+  </div>
+</div>
