@@ -1,0 +1,17 @@
+/* Estilos para la página de error 404 */
+.error-page {
+    text-align: center;
+    padding: var(--spacing-xlarge);
+}
+
+.error-page__title {
+    font-size: var(--text-4xl, 2.5rem);
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-medium);
+}
+
+.error-page__message {
+    font-size: var(--text-lg);
+    color: var(--color-gray);
+    margin-bottom: var(--spacing-large);
+}

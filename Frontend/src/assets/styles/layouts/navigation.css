@@ -1,82 +1,58 @@
 /*
- * Estilos para la barra de navegación principal
- * Incluye menús y elementos de navegación
+ * Archivo: src/assets/styles/layouts/navigation.css
+ * Descripción: Estilos actualizados para la barra de navegación.
  */
 
- .nav {
-  display: flex;
-  justify-content: space-around;
-  background-color: var(--color-pastel-gray);
-  padding: var(--spacing-medium) var(--spacing-large);
-  width: 90%;
-  margin: var(--spacing-medium) auto;
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-md);
+.nav {
+    width: 90%;                        /* Mismo ancho que el header */
+    max-width: 1400px;                 /* Mismo límite que el header */
+    margin: 0 auto;                    /* Centrado horizontal */
+    padding: var(--spacing-small);     /* Padding interno */
+    border-radius: var(--border-radius);
+    background-color: var(--color-gray); /* <-- Fondo gris como el footer */
+    box-shadow: var(--shadow-md);
+    display: flex;
+    justify-content:space-around; /* Centra los elementos del menú */
 }
 
 .nav__link {
-  color: var(--color-text-light);
-  padding: var(--spacing-small) var(--spacing-medium);
-  border-radius: var(--border-radius-small);
-  transition: all var(--transition-normal);
+    /* --- Estilo Base (Verde) --- */
+    background-color: var(--color-secondary);
+    color: var(--color-text-light);
+    
+    /* --- Apariencia de Botón --- */
+    padding: var(--spacing-small) var(--spacing-large);
+    border-radius: var(--border-radius-small);
+    text-decoration: none;
+    font-weight: 600;
+    text-align: center;
+    
+    /* --- Transición Suave --- */
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
 }
 
 .nav__link:hover {
-  background-color: #006400;
-  transform: scale(1.05);
-  box-shadow: var(--shadow-sm);
+    /* --- Efecto Hover (Naranja) --- */
+    background-color: var(--color-primary);
+    transform: translateY(-2px); /* Ligero efecto de levantamiento */
 }
 
-.nav__link--active {
-  background-color: var(--color-primary);
-  font-weight: bold;
-}
-
-/* Estilos específicos para el dropdown del mesero */
-.nav__dropdown {
-  position: relative;
-}
-
-.nav__dropdown-toggle {
-  cursor: pointer;
-}
-
-.nav__dropdown-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background-color: var(--color-secondary);
-  border-radius: var(--border-radius-small);
-  box-shadow: var(--shadow-md);
-  padding: var(--spacing-small);
-  min-width: 200px;
-  display: none;
-  z-index: 100;
-}
-
-.nav__dropdown:hover .nav__dropdown-menu {
-  display: block;
-}
-
-.nav__dropdown-item {
-  display: block;
-  padding: var(--spacing-small);
-  color: var(--color-text-light);
-  transition: background-color var(--transition-fast);
-}
-
-.nav__dropdown-item:hover {
-  background-color: #006400;
+.nav__link.nav__link--active {
+    /* --- Estilo del Enlace Activo (Verde Oscuro) --- */
+    background-color: var(--color-secondary-dark);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2); /* Sombra interior para dar profundidad */
+    font-weight: 700;
 }
 
 @media (max-width: 768px) {
-  .nav {
-    flex-direction: column;
-    gap: var(--spacing-small);
-  }
-  
-  .nav__dropdown-menu {
-    position: static;
-    box-shadow: none;
-  }
+    .nav {
+        flex-direction: column; /* Apila los ítems verticalmente */
+        gap: var(--spacing-medium); /* Añade espacio entre los ítems apilados */
+        padding: var(--spacing-large); /* Aumenta el padding para dar más aire en móvil */
+    }
+
+    .nav__link {
+        width: 100%; /* Los enlaces ocupan todo el ancho disponible */
+    }
 }
+

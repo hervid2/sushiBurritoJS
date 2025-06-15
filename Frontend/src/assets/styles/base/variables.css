@@ -2,54 +2,59 @@
  * Variables CSS globales para el proyecto Sushi Burrito
  * Colores corporativos y valores reutilizables
  */
-
 :root {
-    /* Colores */
-    --color-primary: #FF5722; /* Naranja (o tu color principal) */
-    --color-primary-dark: #E64A19; /* Naranja más oscuro */
-    --color-secondary: #4CAF50; /* Verde (o tu color secundario) */
-    --color-secondary-dark: #006400;/* Verde oscuro para el hover del botón*/
-    --color-background: #FFFFFF; /* Fondo de contenedores/cards */
-    --color-light-bg: #F5F5DC; /* Fondo general de la página (beige claro) */
-    --color-text: #333333; /* Color de texto oscuro */
-    --color-text-light: #F8F8F8; /* Color de texto claro (casi blanco) */
-    --color-border: #CCCCCC; /* Color para bordes */
-    --color-error: #D32F2F; /* Rojo para errores */
-    --color-info: #2196F3; /* Azul para información */
-    --color-success: #4CAF50; /* Verde para éxito */
-    --color-pastel-gray:#868b8d; 
+    /* Paleta Principal */
+    --color-primary: #FF5722;       /* Naranja Principal */
+    --color-primary-dark: #E64A19;    /* Naranja más oscuro */
+    --color-primary-light: #FFCCBC;  /* Naranja muy claro para hovers */
+    --color-secondary: #4CAF50;      /* Verde Principal */
+    --color-secondary-dark: #388E3C;  /* Verde más oscuro */
+
+    /* Paleta Neutral */
+    --color-text: #333333;          /* Texto oscuro principal */
+    --color-text-light: #FFFFFF;    /* Texto claro (blanco) */
+    --color-background: #FFFFFF;      /* Fondo de contenedores/cards */
+    --color-light-bg: #F5F5DC;      /* Fondo general (beige claro) */
+    --color-light-bg-alt: #F9F9F5; /* Alternativa de fondo claro (casi blanco) */
+    --color-border: #CCCCCC;          /* Bordes generales */
+    --color-gray: #6c757d;           /* Gris para texto secundario */
+    --color-light-gray: #E0E0E0;     /* Gris claro para fondos o bordes */
+
+    /* Paleta de Alertas / Estado */
+    --color-success: #28a745;         /* Verde para éxito */
+    --color-info: #17a2b8;            /* Azul para información */
+    --color-warning: #ffc107;         /* Amarillo para advertencia */
+    --color-danger: #dc3545;          /* Rojo para peligro/error */
     
-
     /* Espaciado */
-    --spacing-extra-small: 5px;
-    --spacing-small: 10px;
-    --spacing-medium: 20px;
-    --spacing-large: 30px;
-    --spacing-xlarge: 40px;
+    --spacing-small: 8px;
+    --spacing-medium: 16px;
+    --spacing-large: 24px;
+    --spacing-xlarge: 32px;
 
-    /* Tamaños de fuente */
-    --font-size-small: 0.875rem;
-    --font-size-normal: 1rem;
-    --font-size-large: 1.125rem;
-    --font-size-h1: 2.5rem;
-    --font-size-h2: 2rem;
-    --font-size-h3: 1.75rem;
-    --font-size-h4: 1.5rem;
+    /* Tamaños de Fuente (unificados desde tipography.css) */
+    --text-xs: 0.75rem;     /* 12px */
+    --text-sm: 0.875rem;    /* 14px */
+    --text-base: 1rem;      /* 16px */
+    --text-lg: 1.125rem;    /* 18px */
+    --text-xl: 1.25rem;     /* 20px */
+    --text-2xl: 1.5rem;     /* 24px */
+    --text-3xl: 1.875rem;   /* 30px */
 
     /* Border Radius */
     --border-radius-small: 4px;
     --border-radius: 8px;
-    --border-radius-large: 20px;
+    --border-radius-large: 16px;
 
     /* Sombras */
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-    --shadow-md: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
-    --shadow-lg: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
 
     /* Transiciones */
-    --transition-normal: 0.3s ease-in-out;
+    --transition-normal: 0.2s ease-in-out;
 
-    /* Alturas de Header y Footer (aproximadas, ajusta según tu diseño) */
-    --header-height: 120px;
+    /* Layout */
+    --header-height: 80px;
     --footer-height: 60px;
 }

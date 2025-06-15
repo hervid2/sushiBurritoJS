@@ -1,54 +1,51 @@
 /*
- * Estilos para el encabezado de la aplicación
- * Incluye logo, título y botón de logout
+ * Archivo: src/assets/styles/layouts/header.css
+ * Descripción: Estilos actualizados para el encabezado principal.
  */
 
- .header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background-color: var(--color-primary);
-  color: var(--color-text-light);
-  padding: var(--spacing-medium) var(--spacing-large);
-  width: 90%;
-  margin: var(--spacing-large) auto var(--spacing-medium);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-md);
+.header {
+    /* --- Tamaño y Alineación --- */
+    width: 90%;                        
+    max-width: 1400px;                
+    margin: 2rem auto 0 auto;          
+    padding: 0 var(--spacing-large);   
+    height: 100px;                     
+    border-radius: var(--border-radius); 
+    margin-bottom: var(--spacing-medium); 
+
+    /* --- Color y Apariencia --- */
+    background-color: var(--color-primary); 
+    color: var(--color-text-light);         
+    box-shadow: var(--shadow-md);
+
+    /* --- Layout Interno --- */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-medium);
 }
 
 .header__logo {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  border: 2px solid var(--color-text);
-  object-fit: cover;
+    height: 90px;  
+    width: 90px;   /* Mismo ancho y alto para que sea un círculo perfecto */
+    border-radius: 50%; /* <-- Esto hace el logo redondo */
+    border: 2px solid var(--color-text-light); /* Borde blanco */
+    object-fit: cover; /* Evita que la imagen se deforme */
 }
 
 .header__center {
-  flex: 1;
-  text-align: center;
+    flex-grow: 1; /* Permite que el título ocupe el espacio central */
+    text-align: center;
 }
 
 .header__title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin: 0;
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    margin: 0;
 }
 
-.header__logout {
-  /* Hereda estilos de .btn y .btn--secondary */
-  composes: btn btn--secondary from './buttons.css';
-}
-
-@media (max-width: 768px) {
-  .header {
-    flex-direction: column;
-    gap: var(--spacing-medium);
-    padding: var(--spacing-medium);
-  }
-  
-  .header__logo {
-    width: 80px;
-    height: 80px;
-  }
+/* El botón de logout ya recibe estilos de la clase .btn */
+/* La visibilidad es controlada por JS */
+#logout-button {
+    /* Puedes añadir estilos específicos aquí si es necesario */
 }

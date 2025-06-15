@@ -1,68 +1,37 @@
-/**
- * Controlador para la barra de navegación principal.
- * Carga dinámicamente los enlaces según el rol o la vista actual.
- */
-export const navigationController = (params) => {
-    console.log("Controlador de Navegación Inicializado.", params);
+// src/views/shared/navigationController.js
 
-    const navigationContainer = document.getElementById('main-navigation');
-    if (!navigationContainer) {
-        console.error("Error: Contenedor de navegación 'main-navigation' no encontrado.");
-        return;
-    }
+// Este controlador ahora es muy simple. Solo renderiza el menú que se le pasa.
+export const navigationController = (props) => {
+    const { role } = props;
+    const navContainer = document.getElementById('main-navigation');
 
-    // --- Plantillas de navegación para diferentes roles ---
+    if (!navContainer) return;
 
-    // Navegación para el Administrador
-    const getAdminNav = () => `
-        <a href="#/dashboard" class="nav__link">Dashboard</a>
-        <a href="#/admin/users" class="nav__link">Gestión Usuarios</a>
-        <a href="#/admin/menu" class="nav__link">Gestión de la Carta</a>
-        <a href="#/admin/stats" class="nav__link">Estadísticas</a>
-        <a href="#/logout" class="nav__link">Cerrar Sesión</a>
-    `;
-
-    // Navegación para el Mesero (Ejemplo para futura expansión)
-    const getWaiterNav = () => `
-        <a href="#/waiter/tables" class="nav__link">Ver Mesas</a>
-        <a href="#/waiter/orders" class="nav__link">Tomar Pedido</a>
-    `;
-    
-    // --- Lógica para renderizar la navegación ---
-    
-    // Aquí, decidiríamos qué navegación mostrar. 
-    // Por ahora, asumimos que siempre es la de administrador.
-    // En una app real, 'params.role' vendría de tu sistema de autenticación.
-    const userRole = params?.role || 'admin'; // Asumimos 'admin' por defecto para este caso
-
-    switch (userRole) {
-        case 'admin':
-            navigationContainer.innerHTML = getAdminNav();
-            break;
-        case 'waiter':
-            navigationContainer.innerHTML = getWaiterNav();
-            break;
-        default:
-            navigationContainer.innerHTML = '<a href="#/login" class="nav__link">Iniciar Sesión</a>';
-            break;
-    }
-    
-    // --- Resaltar el enlace activo ---
-    
-    const highlightActiveLink = () => {
-        const currentPath = window.location.hash || '#/dashboard';
-        const navLinks = navigationContainer.querySelectorAll('.nav__link');
-        
-        navLinks.forEach(link => {
-            if (link.getAttribute('href') === currentPath) {
-                link.classList.add('nav__link--active');
-            } else {
-                link.classList.remove('nav__link--active');
-            }
-        });
+    // Define los enlaces para cada rol
+    const navLinks = {
+        admin: `
+            <a href="#/admin/dashboard" class="nav__link" data-path="admin/dashboard">Dashboard</a>
+            <a href="#/admin/users" class="nav__link" data-path="admin/users">Usuarios</a>
+            <a href="#/admin/menu" class="nav__link" data-path="admin/menu">Menú</a>
+            <a href="#/admin/stats" class="nav__link" data-path="admin/stats">Estadísticas</a>
+        `,
+        waiter: `
+            <a href="#/waiter/orders" class="nav__link" data-path="waiter/orders">Mesas/Pedidos</a>
+            <a href="#/waiter/orders-status" class="nav__link" data-path="waiter/orders-status">Estado Pedidos</a>
+            <a href="#/waiter/invoice" class="nav__link" data-path="waiter/invoice">Facturar</a>
+        `,
+        kitchen: `
+            <a href="#/kitchen/orders" class="nav__link" data-path="kitchen/orders">Ver Pedidos</a>
+        `,
     };
+    
+    // Renderiza el menú correspondiente al rol
+    navContainer.innerHTML = navLinks[role] || '';
 
-    // Resaltar en la carga inicial y en cada cambio de ruta
-    highlightActiveLink();
-    window.addEventListener('hashchange', highlightActiveLink);
+    // Lógica para marcar el enlace activo
+    const currentPath = window.location.hash.substring(2);
+    const activeLink = navContainer.querySelector(`[data-path="${currentPath}"]`);
+    if (activeLink) {
+        activeLink.classList.add('nav__link--active');
+    }
 };

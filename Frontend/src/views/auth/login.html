@@ -1,28 +1,24 @@
-<div class="login-main-container"> 
-    <div class="login-content-wrapper">
-        <div class="login-left-container">
-            <h1 class="login-page-title">Bienvenido a Sushi Burrito</h1>
-            <h3 class="login-content-container">Administra tus pedidos y operaciones.</h3>
-        </div>
-
-        <div class="login-right-container">
-            <div class="auth-card">
-                <h2 class="auth-card__title">Iniciar Sesión</h2>
-                <form id="login-form" class="auth-form">
-                    <div class="form-group">
-                        <label for="login-username" class="form-label">Usuario:</label>
-                        <input type="text" id="login-username" class="form-input" placeholder="Tu nombre de usuario" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="login-password" class="form-label">Contraseña:</label>
-                        <input type="password" id="login-password" class="form-input" placeholder="Tu contraseña" required>
-                    </div>
-                    <button type="submit" class="btn btn--primary btn--block">Entrar</button>
-                </form>
-                <div class="auth-card__footer">
-                    <p>¿No tienes cuenta? Los nuevos usuarios son creados por un administrador. Para credenciales, contacta con uno de ellos.   </p>
-                    <p><a href="#/forgot-password" class="auth-link">¿Olvidaste tu contraseña?</a></p>
+<div class="auth-layout">
+    <div class="auth-layout__visual auth-layout__visual--login">
+        <h1>Bienvenido a Sushi Burrito</h1>
+        <h3>Administra tus pedidos y operaciones.</h3>
+    </div>
+    <div class="auth-layout__form">
+        <div class="auth-card">
+            <h2 class="auth-card__title">Iniciar Sesión</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-username" class="form-label">Usuario:</label>
+                    <input type="text" id="login-username" class="form-control" placeholder="Tu nombre de usuario" required>
                 </div>
+                <div class="form-group">
+                    <label for="login-password" class="form-label">Contraseña:</label>
+                    <input type="password" id="login-password" class="form-control" placeholder="Tu contraseña" required>
+                </div>
+                <button type="submit" class="btn btn--primary btn--block">Entrar</button>
+            </form>
+            <div class="auth-card__footer">
+                <a href="#/forgot-password" class="auth-link">¿Olvidaste tu contraseña?</a>
             </div>
         </div>
     </div>

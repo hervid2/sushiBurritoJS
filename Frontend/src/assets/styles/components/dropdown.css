@@ -1,0 +1,44 @@
+/* Estilos para el componente dropdown reutilizable */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown__toggle {
+    /* Estilos base son heredados de la clase .btn */
+    cursor: pointer;
+}
+
+.dropdown__menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: var(--color-background);
+    border-radius: var(--border-radius-small);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-small) 0;
+    min-width: 200px;
+    z-index: 1000;
+    display: none; /* Oculto por defecto, se muestra con JS */
+}
+
+.dropdown__menu.is-active {
+    display: block;
+}
+
+.dropdown__item {
+    display: block;
+    width: 100%;
+    padding: var(--spacing-small) var(--spacing-medium);
+    color: var(--color-text);
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.dropdown__item:hover {
+    background-color: var(--color-light-bg-alt);
+    color: var(--color-primary);
+}
