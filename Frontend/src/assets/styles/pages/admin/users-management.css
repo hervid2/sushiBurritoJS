@@ -2,86 +2,90 @@
  * Estilos para la gestión de usuarios en el panel de administración
  */
 
- .users-management {
-  padding: 2rem 0;
+.users-management-page {
+    width: 90%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 0;
 }
 
 .users-management__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
 .users-management__title {
-  color: var(--color-primary);
-  font-size: var(--text-2xl);
-  margin: 0;
+    color: var(--color-primary);
+    font-size: var(--text-2xl);
+    margin: 0;
 }
 
-.users-management__actions {
-  display: flex;
-  gap: 1rem;
+/* --- Formulario de Usuario --- */
+.user-form-section {
+    background-color: var(--color-background);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 3rem; 
 }
 
-.user-form {
-  background-color: white;
-  padding: 1.5rem;
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-sm);
-  margin-bottom: 2rem;
+.user-form-section h3 {
+    font-size: var(--text-xl);
+    color: var(--color-primary);
+    margin-top: 0;
+    margin-bottom: 1.5rem;
 }
 
-.user-form__title {
-  font-size: var(--text-xl);
-  color: var(--color-primary);
-  margin-bottom: 1.5rem;
+/* --- Estilos para la tabla --- */
+
+/* Filas impares con fondo blanco */
+.users-management-page .table tbody tr:nth-child(odd) {
+    background-color: var(--color-background); /* Blanco absoluto */
 }
 
-.user-form__group {
-  margin-bottom: 1.5rem;
+/* Filas pares con fondo gris sutil */
+.users-management-page .table tbody tr:nth-child(even) {
+    background-color: var(--color-light-bg-alt); /* Gris muy claro */
 }
 
-.user-form__label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: var(--font-medium);
-  color: var(--color-text);
+/* Efecto hover para todas las filas */
+.users-management-page .table tbody tr:hover {
+    background-color: var(--color-primary-light); /* Naranja muy claro */
+    cursor: default; /* Evita que parezca clickeable */
 }
 
-.user-form__input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-small);
-  font-size: var(--text-base);
+
+/* --- Estilos Adicionales para los Badges de Rol --- */
+.role-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--border-radius-large);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    text-transform: capitalize;
+    color: var(--color-text-light);
 }
 
-.user-form__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 1.5rem;
+.role-admin {
+    background-color: var(--color-primary); /* Naranja */
 }
 
-/* Responsive */
+.role-waiter {
+    background-color: var(--color-info); /* Azul */
+}
+
+.role-kitchen {
+    background-color: var(--color-secondary); /* Verde */
+}
+
+
+/* --- Responsive (sin cambios) --- */
 @media (max-width: 768px) {
-  .users-management__header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .users-management__actions {
-    width: 100%;
-  }
-  
-  .user-form__actions {
-    flex-direction: column;
-  }
-  
-  .user-form__actions .btn {
-    width: 100%;
-  }
+    .users-management__header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }

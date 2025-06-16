@@ -1,0 +1,70 @@
+/*
+ * Estilos para la página de estadísticas en el panel de administración
+ */
+
+.stats-overview-page {
+    width: 90%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 0;
+}
+
+.stats-overview__title {
+    color: var(--color-primary);
+    font-size: var(--text-2xl);
+    margin-bottom: 2rem;
+}
+
+.stats-filters {
+    display: flex;
+    gap: 1.5rem; 
+    align-items: flex-end;
+    margin-bottom: 2rem;
+    background-color: var(--color-background);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    flex-wrap: wrap; /* Permite que los elementos se ajusten en pantallas pequeñas */
+}
+
+/* Contenedor específico para los selectores de fecha */
+.custom-range {
+    display: flex;
+    gap: 1.5rem; 
+    align-items: flex-end;
+}
+
+.stats-grid {
+    margin-bottom: 3rem;
+}
+
+.top-items-section {
+    background-color: var(--color-background);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 2rem;
+}
+
+.top-items-section h3 {
+    font-size: var(--text-xl);
+    color: var(--color-primary);
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+}
+
+/* Estilos de tabla (filas pares/impares y hover) */
+.stats-overview-page .table tbody tr:nth-child(odd) {
+    background-color: var(--color-background);
+}
+.stats-overview-page .table tbody tr:nth-child(even) {
+    background-color: var(--color-light-bg-alt);
+}
+.stats-overview-page .table tbody tr:hover {
+    background-color: var(--color-primary-light);
+}
+
+.stats-actions {
+    margin-top: 2rem;
+    text-align: right;
+}

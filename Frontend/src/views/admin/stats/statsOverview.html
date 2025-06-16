@@ -1,3 +1,5 @@
+<!-- src/views/admin/stats/statsOverview.html -->
+
 <div class="stats-overview-page">
     <h2 class="stats-overview__title">Estadísticas Generales</h2>
     
@@ -9,12 +11,14 @@
                 <option value="week">Esta Semana</option>
                 <option value="month" selected>Este Mes</option>
                 <option value="year">Este Año</option>
+                <!-- Opción de rango personalizado añadida -->
                 <option value="custom">Personalizado</option>
             </select>
         </div>
         
-        <div id="custom-range" style="display: none;">
-            <div class="form-group">
+        <!-- Contenedor para los selectores de fecha, inicialmente oculto -->
+        <div id="custom-range-container" class="custom-range" style="display: none;">
+             <div class="form-group">
                 <label for="start-date" class="form-label">Desde:</label>
                 <input type="date" id="start-date" class="form-control">
             </div>
@@ -30,45 +34,36 @@
             <div class="stat-card__value" id="total-orders">Cargando...</div>
             <div class="stat-card__label">Pedidos Totales</div>
         </div>
-        
         <div class="stat-card stat-card--secondary">
             <div class="stat-card__value" id="total-revenue">Cargando...</div>
             <div class="stat-card__label">Ingresos Totales</div>
         </div>
-        
         <div class="stat-card">
             <div class="stat-card__value" id="avg-order">Cargando...</div>
             <div class="stat-card__label">Ticket Promedio</div>
         </div>
     </div>
     
-    <div class="charts-container">
-        <div class="chart-card">
-            <h3 class="chart-card__title">Ventas por Categoría</h3>
-            <canvas id="category-chart"></canvas>
+    <div class="top-items-section">
+        <h3>Productos más populares</h3>
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad Vendida</th>
+                        <th>Ingresos Generados</th>
+                    </tr>
+                </thead>
+                <tbody id="top-items-list">
+                    <!-- Contenido se genera con JS -->
+                </tbody>
+            </table>
         </div>
-        
-        <div class="chart-card">
-            <h3 class="chart-card__title">Ventas por Día</h3>
-            <canvas id="daily-sales-chart"></canvas>
+        <div class="stats-actions">
+            <button class="btn btn--primary" id="send-pdf-btn">
+                <i class="fas fa-file-pdf"></i> Generar PDF al Correo
+            </button>
         </div>
-    </div>
-    
-    <div class="top-items">
-        <h3>Ítems Más Populares</h3>
-        <table class="table management-table">
-            <thead>
-                <tr>
-                    <th>Ítem</th>
-                    <th>Cantidad Vendida</th>
-                    <th>Ingresos Generados</th>
-                </tr>
-            </thead>
-            <tbody id="top-items-list">
-                <tr>
-                    <td colspan="3" class="loading-message">Cargando ítems...</td>
-                </tr>
-            </tbody>
-        </table>
     </div>
 </div>

@@ -25,6 +25,8 @@
 @import url('./pages/auth/auth.css');
 @import url('./pages/admin/users-management.css');
 @import url('./pages/admin/dashboard.css');
+@import url('./pages/admin/menu-management.css');
+@import url('./pages/admin/statsOverview.css');
 @import url('./pages/kitchen/orders.css');
 @import url('./pages/waiter/tables.css');
 @import url('./pages/404.css');

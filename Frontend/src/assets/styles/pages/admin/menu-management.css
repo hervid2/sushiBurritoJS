@@ -1,0 +1,75 @@
+/*
+ * Estilos para la gestión del menú en el panel de administración
+ */
+
+.menu-management-page {
+    width: 90%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 0;
+}
+
+.management-title {
+    color: var(--color-primary);
+    font-size: var(--text-2xl);
+    margin-bottom: 2rem;
+}
+
+.management-controls {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 2rem;
+}
+
+/* --- Formulario de Ítem del Menú --- */
+.menu-item-form-section {
+    background-color: var(--color-background);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    /* Aumenta el espacio inferior */
+    margin-bottom: 3rem; 
+}
+
+.menu-item-form-section h3 {
+    font-size: var(--text-xl);
+    color: var(--color-primary);
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+}
+
+/* --- Estilos para la tabla --- */
+
+/* Filas impares con fondo blanco */
+.menu-management-page .table tbody tr:nth-child(odd) {
+    background-color: var(--color-background); /* Blanco */
+}
+
+/* Filas pares con fondo gris sutil */
+.menu-management-page .table tbody tr:nth-child(even) {
+    background-color: var(--color-light-bg-alt); /* Gris muy claro */
+}
+
+/* Se preserva el efecto hover para todas las filas */
+.menu-management-page .table tbody tr:hover {
+    background-color: var(--color-primary-light); /* Naranja muy claro */
+}
+
+
+/* Estilos para los Badges de Categoría */
+.category-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--border-radius-large);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    text-transform: capitalize;
+    color: var(--color-text-light);
+    display: inline-block;
+}
+
+/* Categorías de menú con colores específicos */
+.category-sushi { background-color: #007bff; }
+.category-burrito { background-color: #fd7e14; }
+.category-entradas { background-color: #28a745; }
+.category-bebidas { background-color: #dc3545; }
+.category-postres { background-color: #6f42c1; }
