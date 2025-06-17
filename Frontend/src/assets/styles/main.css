@@ -27,8 +27,10 @@
 @import url('./pages/admin/dashboard.css');
 @import url('./pages/admin/menu-management.css');
 @import url('./pages/admin/statsOverview.css');
-@import url('./pages/kitchen/orders.css');
-@import url('./pages/waiter/tables.css');
+@import url('./pages/kitchen/kitchenOrders.css');
+@import url('./pages/waiter/waiterInvoiceGenerator.css');
+@import url('./pages/waiter/waiterOrdersManagement.css');
+@import url('./pages/waiter/waiterOrdersStatus.css');
 @import url('./pages/404.css');
 
 /* --------------------------------------------------- */

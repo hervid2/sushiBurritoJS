@@ -21,7 +21,9 @@ export const navigationController = (props) => {
             <a href="#/waiter/invoice" class="nav__link" data-path="waiter/invoice">Facturar</a>
         `,
         kitchen: `
-            <a href="#/kitchen/orders" class="nav__link" data-path="kitchen/orders">Ver Pedidos</a>
+            <a href="#/kitchen/orders/pending" class="nav__link" data-path="kitchen/orders/pending">Pendientes</a>
+            <a href="#/kitchen/orders/preparing" class="nav__link" data-path="kitchen/orders/preparing">En Preparación</a>
+            <a href="#/kitchen/orders/ready" class="nav__link" data-path="kitchen/orders/ready">Listos</a>
         `,
     };
     

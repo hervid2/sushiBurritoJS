@@ -1,24 +1,15 @@
+<!-- src/views/kitchen/kitchenOrders.html -->
+
 <div class="kitchen-orders-page">
     <div class="kitchen-orders__header">
-        <h2 class="kitchen-orders__title">Gestión de Pedidos de Cocina</h2>
+        <!-- El título ahora se maneja desde el router y se muestra en el header principal -->
     </div>
     
-    <div class="order-filters-container">
-        <div class="form-group">
-            <label for="order-filter" class="form-label">Mostrar:</label>
-            <select id="order-filter" class="form-control">
-                <option value="pending">Pedidos Pendientes</option>
-                <option value="preparing">Pedidos En Preparación</option>
-                <option value="ready">Pedidos Listos</option>
-                <option value="completed">Historial de Pedidos (Completados)</option>
-            </select>
-        </div>
-        <button id="refresh-orders-btn" class="btn btn--secondary">
-            <i class="fas fa-sync-alt"></i> Actualizar
-        </button>
-    </div>
-    
+    <!-- La lista de pedidos ocupará todo el ancho de la página -->
     <div class="orders-list" id="orders-list">
         <div class="loading-message">Cargando pedidos...</div>
     </div>
+
+    <!-- Contenedor para la paginación -->
+    <div class="pagination-container" id="pagination-container"></div>
 </div>

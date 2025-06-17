@@ -1,213 +1,144 @@
 /*
- * Estilos para el panel de cocina (visualización de pedidos)
+ * src/assets/styles/pages/kitchen/kitchenOrders.css
  */
 
- .kitchen-orders {
-  padding: 2rem 0;
+.kitchen-orders-page {
+    width: 90%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 0;
 }
 
-.kitchen-orders__header {
-  margin-bottom: 2rem;
-  text-align: center;
-}
-
-.kitchen-orders__title {
-  color: var(--color-primary);
-  font-size: var(--text-2xl);
-  margin-bottom: 1rem;
+.orders-list {
+    display: grid;
+    /* Muestra las tarjetas en columnas que se ajustan automáticamente */
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+    min-height: 400px; /* Asegura un alto mínimo para la vista */
 }
 
 .order-card {
-  background-color: white;
-  border-radius: var(--border-radius);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: var(--shadow-sm);
-  border-left: 4px solid var(--color-primary);
-  min-height: 150px; /* Asegura un alto mínimo para consistencia visual en las tarjetas */
+    background-color: white;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    border-left: 5px solid; /* El color se define por estado */
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
+
+.order-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Colores por estado */
+.order-card--pending { border-left-color: var(--color-danger); }
+.order-card--preparing { border-left-color: var(--color-warning); }
+.order-card--ready { border-left-color: var(--color-success); }
+
 
 .order-card__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 1rem;
 }
 
-.order-card__id { /* Cambiado de .order-card__number para que coincida con el HTML */
-  font-weight: var(--font-bold);
-  color: var(--color-primary);
+.order-card__id {
+    font-weight: 700;
+    color: var(--color-primary);
+    font-size: var(--text-lg);
 }
 
 .order-card__time {
-  font-size: var(--text-sm);
-  color: var(--color-text);
-  opacity: 0.8;
+    font-size: var(--text-sm);
+    color: var(--color-gray);
 }
 
-.order-card--pending {
-    border-color: #dd3507; /* Rojo para pendiente */
+.order-card__body {
+    flex-grow: 1; /* Hace que esta sección ocupe el espacio disponible */
 }
-
-.order-card--preparing {
-    border-color: #fafa00; /* Amarillo para en preparación */
-}
-
-.order-card--ready {
-    border-color: #28a745; /* Verde para listo */
-}
-
 
 .order-card__items {
-  margin-bottom: 1.5rem;
-}
-
-.order-card__items ul { /* Añadido para estilizar la lista */
     list-style: none;
     padding: 0;
-    margin: 0;
+    margin: 0 0 1rem 0;
 }
 
-.order-card__items li { /* Añadido para estilizar cada elemento de la lista */
-    margin-bottom: 0.5rem;
-    padding-bottom: 0.5rem;
+.order-card__items li {
+    padding: 0.5rem 0;
     border-bottom: 1px dashed var(--border-color);
-    font-size: var(--text-base);
 }
-
 .order-card__items li:last-child {
     border-bottom: none;
 }
 
-
-.order-item { /* Esta clase no se usa en el HTML actual, se usa directamente el li */
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px dashed var(--border-color);
-}
-
-.order-item:last-child {
-  border-bottom: none;
-}
-
-.order-item__name { /* Esta clase no se usa en el HTML actual */
-  font-weight: var(--font-medium);
-}
-
-.order-item__quantity { /* Esta clase no se usa en el HTML actual */
-  color: var(--color-primary);
-  font-weight: var(--font-bold);
-}
-
 .order-card__notes {
-  font-size: var(--text-sm);
-  color: var(--color-text);
-  font-style: italic;
-  margin-bottom: 1.5rem;
-  padding: 0.5rem;
-  background-color: rgba(245, 245, 220, 0.5);
-  border-left: 3px solid var(--color-primary);
+    font-size: var(--text-sm);
+    color: var(--color-gray);
+    font-style: italic;
+    background-color: var(--color-light-bg-alt);
+    padding: 0.75rem;
+    border-radius: var(--border-radius-small);
+    margin-top: 1rem;
 }
 
 .order-card__actions {
-  display: flex;
-  gap: 1rem;
-}
-
-.orders-list {
-    min-height: 400px; /* Ajusta según cuántas tarjetas se vean sin paginación */
-    /* Remueve cualquier overflow-y: scroll si lo tenías aquí */
-}
-
-/* --- Estilos para la paginación --- */
-.pagination-container {
-    margin-top: 20px;
+    margin-top: 1.5rem;
     display: flex;
-    justify-content: center; /* Centra los botones de paginación */
-    padding-bottom: 2rem; /* Espacio debajo de la paginación */
+    gap: 0.5rem;
 }
 
-.pagination {
+.order-card__actions .btn {
+    width: 100%; /* Para que los botones ocupen todo el ancho disponible */
+}
+
+
+/* --- Estilos Completos de Paginación --- */
+.pagination-container {
+    margin-top: 2rem;
+    padding-bottom: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.pagination-container ul {
+    display: flex;
+    gap: 0.5rem;
     list-style: none;
     padding: 0;
     margin: 0;
-    display: flex;
-    gap: 8px; /* Espacio entre los botones */
-}
-
-.pagination li {
-    display: inline-block;
 }
 
 .pagination-btn {
-    padding: 8px 15px;
+    padding: 0.5rem 1rem;
     border: 1px solid var(--border-color);
-    background-color: var(--color-background-light); /* Un color de fondo claro */
-    color: var(--color-text);
+    background-color: var(--color-background);
+    color: var(--color-primary);
     cursor: pointer;
-    border-radius: var(--border-radius);
-    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-    font-size: var(--text-base);
+    border-radius: var(--border-radius-small);
+    transition: all 0.2s ease-in-out;
 }
 
 .pagination-btn:hover:not(:disabled) {
-    background-color: var(--color-primary-light); /* Un tono más claro del primario al pasar el mouse */
+    background-color: var(--color-primary);
+    color: var(--color-text-light);
     border-color: var(--color-primary);
-    color: var(--color-primary-dark);
 }
 
 .pagination-btn:disabled {
-    opacity: 0.6;
+    opacity: 0.5;
     cursor: not-allowed;
-    background-color: var(--color-light-gray);
-    color: var(--color-gray);
 }
 
 .pagination-btn.active {
-    background-color: var(--color-primary); /* Color para la página actual */
-    color: white;
-    border-color: var(--color-primary);
-    font-weight: var(--font-bold);
-}
-
-
-/* Mensajes de estado */
-.loading-message,
-.empty-message,
-.error-message {
-    text-align: center;
-    padding: 2rem;
-    font-size: var(--text-lg);
+    background-color: var(--color-primary);
     color: var(--color-text-light);
-}
-
-.error-message {
-    color: var(--color-danger);
-}
-
-
-/* Responsive */
-@media (max-width: 768px) {
-  .order-card__header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-  
-  .order-card__actions {
-    flex-direction: column;
-  }
-  
-  .order-card__actions .btn {
-    width: 100%;
-  }
-
-  .pagination {
-      flex-wrap: wrap; /* Permite que los botones se envuelvan en pantallas pequeñas */
-      justify-content: center;
-  }
+    font-weight: 700;
+    border-color: var(--color-primary);
 }

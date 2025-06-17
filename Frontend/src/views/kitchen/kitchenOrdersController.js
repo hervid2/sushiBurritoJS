@@ -1,145 +1,151 @@
 // src/views/kitchen/kitchenOrdersController.js
 
 import { showAlert } from '../../helpers/alerts.js';
-import { showConfirmModal } from '../../helpers/modalHelper.js'; // <- NUEVO IMPORT
+import { showConfirmModal } from '../../helpers/modalHelper.js';
 
-export const kitchenOrdersController = () => {
-    console.log("Kitchen Orders Controller Initialized.");
+export const kitchenOrdersController = (params) => {
+    // El status se obtiene del objeto 'routeInfo' pasado por el router
+    const currentStatus = params.routeInfo.status;
+    console.log(`Kitchen Orders Controller Initialized for status: ${currentStatus}`);
 
-    // --- Referencias a elementos del DOM ---
-    const orderFilterSelect = document.getElementById('order-filter');
-    const refreshOrdersBtn = document.getElementById('refresh-orders-btn');
     const ordersListContainer = document.getElementById('orders-list');
+    const paginationContainer = document.getElementById('pagination-container');
 
-    let currentFilter = orderFilterSelect ? orderFilterSelect.value : 'pending';
+    let allOrders = []; // Almacenará todos los pedidos del estado actual
+    let currentPage = 1;
+    const itemsPerPage = 6; // Tarjetas por página
 
-    // --- Funciones API (simuladas) ---
-    const fetchOrders = async (status = 'pending') => {
-        // ... (la lógica de fetch permanece igual)
+    // --- API Simulada ---
+    const fetchOrdersByStatus = async (status) => {
         return new Promise(resolve => {
             setTimeout(() => {
-                const allOrders = [
-                    { id: 'ORD001', table: 'Mesa 5', time: '08:00 PM', status: 'pending', notes: 'Sin aguacate', items: [{ name: 'Sushi Roll California', quantity: 2 }, { name: 'Gyoza de Cerdo (6u)', quantity: 1 }] },
-                    { id: 'ORD002', table: 'Mesa 12', time: '08:05 PM', status: 'pending', notes: '', items: [{ name: 'Burrito de Pollo Teriyaki', quantity: 1 }, { name: 'Coca-Cola (lata)', quantity: 2 }] },
-                    { id: 'ORD003', table: 'Mesa 3', time: '07:45 PM', status: 'preparing', notes: 'Extra picante', items: [{ name: 'Sushi Roll Spicy Tuna', quantity: 1 }, { name: 'Sopa Miso', quantity: 1 }] },
-                    { id: 'ORD005', table: 'Mesa 1', time: '07:30 PM', status: 'ready', notes: 'Para llevar', items: [{ name: 'Nigiri Surtido', quantity: 1 }, { name: 'Agua Mineral', quantity: 1 }] },
-                    { id: 'ORD006', table: 'Mesa 10', time: '07:00 PM', status: 'completed', notes: '', items: [{ name: 'Yakitori (4u)', quantity: 2 }] },
-                ];
-                const filteredOrders = allOrders.filter(order => status === 'all' || order.status === status);
-                resolve(filteredOrders);
+                const FAKE_ORDERS = {
+                    pending: Array.from({ length: 10 }, (_, i) => ({ id: `P0${i+1}`, table: `Mesa ${i+2}`, time: '08:00 PM', status: 'pending', notes: i % 2 ? 'Sin aguacate' : '', items: [{ name: 'Sushi Roll', quantity: 2 }]})),
+                    preparing: Array.from({ length: 5 }, (_, i) => ({ id: `R0${i+1}`, table: `Mesa ${i+5}`, time: '07:45 PM', status: 'preparing', notes: 'Extra picante', items: [{ name: 'Ramen', quantity: 1 }]})),
+                    ready: Array.from({ length: 3 }, (_, i) => ({ id: `L0${i+1}`, table: `Mesa ${i+1}`, time: '07:30 PM', status: 'ready', notes: '', items: [{ name: 'Nigiri', quantity: 1 }]})),
+                };
+                resolve(FAKE_ORDERS[status] || []);
             }, 300);
         });
     };
 
     const updateOrderStatus = async (orderId, newStatus) => {
-        // ... (la lógica de update permanece igual)
-        return new Promise(resolve => {
-            setTimeout(() => {
-                console.log(`Simulating update of order ${orderId} to status: ${newStatus}`);
-                resolve({ success: true, message: `Pedido ${orderId} actualizado a ${newStatus}.` });
-            }, 300);
-        });
+        return new Promise(r => setTimeout(() => r({ success: true }), 300));
     };
 
-    // --- Funciones de Renderizado (sin cambios) ---
-    const renderOrders = (orders) => {
+    // --- Renderizado y Paginación ---
+    const renderPage = () => {
         if (!ordersListContainer) return;
-        if (orders.length === 0) {
-            ordersListContainer.innerHTML = `<div class="empty-message">No hay pedidos con el estado '${currentFilter}'.</div>`;
-            return;
+
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const pageItems = allOrders.slice(startIndex, endIndex);
+
+        if (allOrders.length === 0) {
+            ordersListContainer.innerHTML = `<div class="empty-message">No hay pedidos ${currentStatus}.</div>`;
+        } else {
+            ordersListContainer.innerHTML = pageItems.map(order => `
+                <div class="order-card order-card--${order.status}" data-order-id="${order.id}">
+                    <div class="order-card__header">
+                        <h3 class="order-card__id">Pedido #${order.id}</h3>
+                        <span class="order-card__time">${order.time}</span>
+                    </div>
+                    <div class="order-card__body">
+                        <p><strong>Mesa:</strong> ${order.table}</p>
+                        <ul class="order-card__items">
+                            ${order.items.map(item => `<li>${item.quantity}x ${item.name}</li>`).join('')}
+                        </ul>
+                        ${order.notes ? `<p class="order-card__notes"><strong>Notas:</strong> ${order.notes}</p>` : ''}
+                    </div>
+                    <div class="order-card__actions">
+                        ${order.status === 'pending' ? `<button class="btn btn--primary start-preparing-btn" data-id="${order.id}">En Preparación</button>` : ''}
+                        ${order.status === 'preparing' ? `<button class="btn btn--success mark-ready-btn" data-id="${order.id}">Marcar Listo</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
         }
-        ordersListContainer.innerHTML = orders.map(order => `
-            <div class="order-card order-card--${order.status}" data-order-id="${order.id}">
-                <div class="order-card__header">
-                    <h3 class="order-card__id">Pedido #${order.id}</h3>
-                    <span class="order-card__table">Mesa: ${order.table}</span>
-                    <span class="order-card__time">${order.time}</span>
-                </div>
-                <div class="order-card__body">
-                    <ul class="order-card__items">
-                        ${order.items.map(item => `<li>${item.quantity}x ${item.name}</li>`).join('')}
-                    </ul>
-                    ${order.notes ? `<p class="order-card__notes">Notas: <span>${order.notes}</span></p>` : ''}
-                </div>
-                <div class="order-card__actions">
-                    ${order.status === 'pending' ? `<button class="btn btn--primary btn--small start-preparing-btn" data-id="${order.id}"><i class="fas fa-play"></i> En Preparación</button>` : ''}
-                    ${order.status === 'preparing' ? `<button class="btn btn--success btn--small mark-ready-btn" data-id="${order.id}"><i class="fas fa-check"></i> Marcar Listo</button>` : ''}
-                    ${order.status === 'ready' ? `<button class="btn btn--info btn--small mark-served-btn" data-id="${order.id}"><i class="fas fa-utensils"></i> Marcar Entregado</button>` : ''}
-                    ${order.status !== 'completed' ? `<button class="btn btn--danger btn--small cancel-order-btn" data-id="${order.id}"><i class="fas fa-times"></i> Cancelar</button>` : ''}
-                </div>
-            </div>
-        `).join('');
-        attachOrderButtonListeners();
+        
+        renderPagination();
+        attachButtonListeners();
     };
 
-    // --- Manejadores de Eventos (Cancelación actualizada) ---
-    const handleCancelOrder = async (orderId) => {
-        try {
-            // USA EL NUEVO HELPER
-            await showConfirmModal(
-                'Confirmar Cancelación',
-                `¿Está seguro de que desea cancelar el Pedido #${orderId}? Esta acción no se puede deshacer.`
-            );
+    // --- LÓGICA DE PAGINACIÓN COMPLETA ---
+    const renderPagination = () => {
+        if (!paginationContainer) return;
+        paginationContainer.innerHTML = '';
+        
+        const totalPages = Math.ceil(allOrders.length / itemsPerPage);
+        if (totalPages <= 1) return;
 
-            // Si el usuario confirma, el código continúa aquí.
-            await updateOrderStatus(orderId, 'cancelled');
-            showAlert(`Pedido #${orderId} cancelado.`, 'success');
-            loadOrders(); // Recargar la lista
+        const ul = document.createElement('ul');
 
-        } catch (error) {
-            // El usuario hizo clic en "Cancelar" o cerró el modal.
-            // El error puede ser la promesa rechazada, o un error de la API.
-            if (error) {
-                console.error("Error al cancelar pedido:", error);
-                showAlert('Error al cancelar el pedido.', 'error');
-            } else {
-                 console.log('Cancelación de pedido abortada por el usuario.');
-            }
+        // Botón "Anterior"
+        const prevLi = document.createElement('li');
+        const prevBtn = document.createElement('button');
+        prevBtn.textContent = 'Anterior';
+        prevBtn.className = 'pagination-btn';
+        if (currentPage === 1) prevBtn.disabled = true;
+        prevBtn.onclick = () => {
+            currentPage--;
+            renderPage();
+        };
+        prevLi.appendChild(prevBtn);
+        ul.appendChild(prevLi);
+
+        // Botones de páginas
+        for (let i = 1; i <= totalPages; i++) {
+            const pageLi = document.createElement('li');
+            const pageBtn = document.createElement('button');
+            pageBtn.textContent = i;
+            pageBtn.className = 'pagination-btn';
+            if (i === currentPage) pageBtn.classList.add('active');
+            pageBtn.onclick = () => {
+                currentPage = i;
+                renderPage();
+            };
+            pageLi.appendChild(pageBtn);
+            ul.appendChild(pageLi);
         }
-    };
-    
-    // ... otros manejadores (handleStartPreparing, handleMarkReady) sin cambios ...
-    const handleStartPreparing = async (orderId) => {
-        await updateOrderStatus(orderId, 'preparing');
-        loadOrders();
-    };
-    const handleMarkReady = async (orderId) => {
-        await updateOrderStatus(orderId, 'ready');
-        loadOrders();
-    };
-    const handleMarkServed = async (orderId) => {
-        await updateOrderStatus(orderId, 'completed');
-        loadOrders();
-    };
 
-    const attachOrderButtonListeners = () => {
-        document.querySelectorAll('.start-preparing-btn').forEach(b => b.onclick = (e) => handleStartPreparing(e.currentTarget.dataset.id));
-        document.querySelectorAll('.mark-ready-btn').forEach(b => b.onclick = (e) => handleMarkReady(e.currentTarget.dataset.id));
-        document.querySelectorAll('.mark-served-btn').forEach(b => b.onclick = (e) => handleMarkServed(e.currentTarget.dataset.id));
-        document.querySelectorAll('.cancel-order-btn').forEach(b => b.onclick = (e) => handleCancelOrder(e.currentTarget.dataset.id));
+        // Botón "Siguiente"
+        const nextLi = document.createElement('li');
+        const nextBtn = document.createElement('button');
+        nextBtn.textContent = 'Siguiente';
+        nextBtn.className = 'pagination-btn';
+        if (currentPage === totalPages) nextBtn.disabled = true;
+        nextBtn.onclick = () => {
+            currentPage++;
+            renderPage();
+        };
+        nextLi.appendChild(nextBtn);
+        ul.appendChild(nextLi);
+
+        paginationContainer.appendChild(ul);
     };
 
     const loadOrders = async () => {
-        if (!ordersListContainer) return;
-        ordersListContainer.innerHTML = '<div class="loading-message">Cargando pedidos...</div>';
+        ordersListContainer.innerHTML = '<div class="loading-message">Cargando...</div>';
         try {
-            const orders = await fetchOrders(currentFilter);
-            renderOrders(orders);
+            allOrders = await fetchOrdersByStatus(currentStatus);
+            currentPage = 1;
+            renderPage();
         } catch (error) {
             ordersListContainer.innerHTML = '<div class="error-message">Error al cargar pedidos.</div>';
         }
     };
+    
+    // --- Manejadores de Eventos ---
+    const handleUpdateStatus = async (orderId, newStatus) => {
+        await updateOrderStatus(orderId, newStatus);
+        showAlert(`Pedido #${orderId} actualizado a '${newStatus}'.`, 'success');
+        loadOrders();
+    };
 
+    const attachButtonListeners = () => {
+        document.querySelectorAll('.start-preparing-btn').forEach(b => b.onclick = (e) => handleUpdateStatus(e.currentTarget.dataset.id, 'preparing'));
+        document.querySelectorAll('.mark-ready-btn').forEach(b => b.onclick = (e) => handleUpdateStatus(e.currentTarget.dataset.id, 'ready'));
+    };
+    
     // --- Inicialización ---
-    if (orderFilterSelect) {
-        orderFilterSelect.addEventListener('change', (e) => {
-            currentFilter = e.target.value;
-            loadOrders();
-        });
-    }
-    if (refreshOrdersBtn) {
-        refreshOrdersBtn.addEventListener('click', loadOrders);
-    }
-
     loadOrders();
 };
