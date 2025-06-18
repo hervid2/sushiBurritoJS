@@ -26,14 +26,14 @@ export const routes = {
     // Admin
     "admin/dashboard": { template: "admin/dashboard/dashboard.html", controller: dashboardController, title: "Panel administrativo", roles: ['admin'] },
     "admin/users": { template: "admin/users/usersManagement.html", controller: usersController, title: "Gestión de Usuarios", roles: ['admin'] },
-    "admin/menu": { template: "admin/menu/menuManagement.html", controller: menuController, title: "Gestión de Menú", roles: ['admin'] },
+    "admin/menu": { template: "admin/menu/menuManagement.html", controller: menuController, title: "Gestión de Menú y mesas", roles: ['admin'] },
     "admin/stats": { template: "admin/stats/statsOverview.html", controller: statsController, title: "Estadísticas", roles: ['admin'] },
     // Kitchen - Rutas específicas para cada estado
     "kitchen/orders/pending": { template: "kitchen/kitchenOrders.html", controller: kitchenOrdersController, title: "Pedidos Pendientes", roles: ['kitchen'], status: 'pending' },
     "kitchen/orders/preparing": { template: "kitchen/kitchenOrders.html", controller: kitchenOrdersController, title: "Pedidos en Preparación", roles: ['kitchen'], status: 'preparing' },
     "kitchen/orders/ready": { template: "kitchen/kitchenOrders.html", controller: kitchenOrdersController, title: "Pedidos Listos", roles: ['kitchen'], status: 'ready' },
     // Waiter
-    "waiter/orders": { template: "waiter/waiterOrdersManagement.html", controller: waiterOrdersController, title: "Gestión de Mesas y Pedidos", roles: ['waiter'] },
+    "waiter/orders": { template: "waiter/waiterOrdersManagement.html", controller: waiterOrdersController, title: "Gestión de Pedidos", roles: ['waiter'] },
     "waiter/orders-status": { template: "waiter/waiterOrdersStatus.html", controller: waiterOrdersStatusController, title: "Estado de Pedidos", roles: ['waiter'] },
     "waiter/invoice": { template: "waiter/waiterInvoiceGenerator.html", controller: waiterInvoiceGeneratorController, title: "Generación de Factura", roles: ['waiter'] },
     // 404
@@ -93,7 +93,7 @@ export const loadContent = async () => {
 
     // Bloque de pruebas (comentar para producción)
     isAuthenticated = true;
-    userRole = 'waiter';
+    userRole = 'admin';
     
     // --- LÓGICA DE REDIRECCIÓN Y SEGURIDAD ---
     if (path === "kitchen/orders") {
