@@ -1,73 +1,73 @@
 <!-- src/views/waiter/waiterOrdersManagement.html -->
 
 <div class="waiter-orders-page">
-    <h2 class="waiter-orders__title">Gestión de Mesas</h2>
-    
-    <div class="tables-grid" id="tables-grid">
-        <div class="loading-message">Cargando mesas...</div>
-    </div>
+  <h2 class="waiter-orders__title">Gestión de Mesas</h2>
+  
+  <div class="tables-grid" id="tables-grid">
+      <div class="loading-message">Cargando mesas...</div>
+  </div>
 
-    <div class="pagination-container" id="pagination-container"></div>
+  <div class="pagination-container" id="pagination-container"></div>
 
-    <!-- Modal para crear/editar pedidos -->
-    <div id="order-modal" class="modal">
-        <div class="modal__content">
-            <div class="modal__header">
-                <h4 class="modal__title" id="order-modal-title">Detalles del Pedido</h4>
-                <button class="modal__close-btn">&times;</button>
-            </div>
-            <div class="modal__body">
-                <form id="order-form" onsubmit="return false;">
-                    <input type="hidden" id="order-id">
-                    <input type="hidden" id="table-id-hidden">
-                    
-                    <div id="order-status-container" style="display: none;">
-                        <p class="form-label">Estado del Pedido:</p>
-                        <div id="order-status-display" class="order-status-display"></div>
-                    </div>
-                    
-                    <h4>Artículos Actuales</h4>
-                    <div id="order-items-list" class="order-items-list-container">
-                        <p>No hay artículos en este pedido.</p>
-                    </div>
-                    
-                    <!-- Controles de edición del pedido -->
-                    <div id="add-item-controls">
-                        <hr>
-                        <!-- Botón renombrado -->
-                        <button type="button" class="btn btn--secondary" id="modify-order-btn">
-                            <i class="fas fa-edit"></i> Agregar/Modificar Pedido
-                        </button>
-                        
-                        <!-- Sección para agregar un nuevo ítem, oculta por defecto -->
-                        <div id="add-item-section" style="display: none; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-                            <div class="form-group">
-                                <label for="item-category-filter" class="form-label">Filtrar por Categoría:</label>
-                                <select id="item-category-filter" class="form-control"></select>
-                            </div>
-                            <div class="form-group">
-                                <label for="item-select" class="form-label">Producto:</label>
-                                <select id="item-select" class="form-control"></select>
-                            </div>
-                            <div class="form-group">
-                                <label for="item-quantity" class="form-label">Cantidad:</label>
-                                <input type="number" id="item-quantity" class="form-control" value="1" min="1">
-                            </div>
-                            <div class="form-group">
-                                <label for="item-notes" class="form-label">Notas del Producto (opcional):</label>
-                                <input type="text" id="item-notes" class="form-control" placeholder="Ej: Sin picante, término medio, etc.">
-                            </div>
-                            <button type="button" class="btn btn--success btn--small" id="confirm-add-item-btn">
-                                <i class="fas fa-check"></i> Confirmar Artículo
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal__footer">
-                <button type="button" class="btn btn--secondary" id="cancel-order-modal-btn">Cancelar</button>
-                <button type="submit" class="btn btn--primary" id="submit-order-btn" form="order-form">Guardar Cambios</button>
-            </div>
-        </div>
-    </div>
+  <!-- Modal para crear/editar pedidos -->
+  <div id="order-modal" class="modal">
+      <div class="modal__content">
+          <div class="modal__header">
+              <h4 class="modal__title" id="order-modal-title">Detalles del Pedido</h4>
+              <button class="modal__close-btn">&times;</button>
+          </div>
+          <div class="modal__body">
+              <form id="order-form" onsubmit="return false;">
+                  <input type="hidden" id="order-id">
+                  <input type="hidden" id="table-id-hidden">
+                  
+                  <div id="order-status-container" style="display: none;">
+                      <p class="form-label">Estado del Pedido:</p>
+                      <div id="order-status-display" class="order-status-display"></div>
+                  </div>
+                  
+                  <h4>Artículos Actuales</h4>
+                  <div id="order-items-list" class="order-items-list-container">
+                      <p>No hay artículos en este pedido.</p>
+                  </div>
+                  
+                  <div id="add-item-controls">
+                      <hr>
+                      <button type="button" class="btn btn--secondary" id="modify-order-btn">
+                          <i class="fas fa-edit"></i> Agregar/Modificar Pedido
+                      </button>
+                      
+                      <div id="add-item-section" style="display: none; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                          <div class="form-group">
+                              <label for="item-category-filter" class="form-label">Filtrar por Categoría:</label>
+                              <select id="item-category-filter" class="form-control"></select>
+                          </div>
+                          <div class="form-group">
+                              <label for="item-select" class="form-label">Producto:</label>
+                              <select id="item-select" class="form-control"></select>
+                          </div>
+                          <div class="form-group">
+                              <label for="item-quantity" class="form-label">Cantidad:</label>
+                              <input type="number" id="item-quantity" class="form-control" value="1" min="1">
+                          </div>
+                          <div class="form-group">
+                              <label for="item-notes" class="form-label">Notas del Producto (opcional):</label>
+                              <input type="text" id="item-notes" class="form-control" placeholder="Ej: Sin picante">
+                          </div>
+                          <button type="button" class="btn btn--success btn--small" id="confirm-add-item-btn">
+                              <i class="fas fa-check"></i> Confirmar Artículo
+                          </button>
+                      </div>
+                  </div>
+              </form>
+          </div>
+          <div class="modal__footer">
+              <div class="order-total">
+                  <strong>Total: </strong><span id="order-total-price">$0.00</span>
+              </div>
+              <button type="button" class="btn btn--secondary" id="cancel-order-modal-btn">Cancelar</button>
+              <button type="submit" class="btn btn--primary" id="submit-order-btn" form="order-form">Guardar</button>
+          </div>
+      </div>
+  </div>
 </div>

@@ -6,7 +6,7 @@ import { showConfirmModal } from '../../helpers/modalHelper.js';
 export const waiterOrdersController = () => {
     console.log("Waiter Orders Controller Initialized.");
 
-    // --- Referencias al DOM (con verificaciones) ---
+    // --- Referencias al DOM ---
     const tablesGrid = document.getElementById('tables-grid');
     if (!tablesGrid) {
         console.error("Critical Error: '#tables-grid' container not found.");
@@ -32,6 +32,7 @@ export const waiterOrdersController = () => {
     const closeOrderModalBtn = document.querySelector('#order-modal .modal__close-btn');
     const cancelOrderModalBtn = document.getElementById('cancel-order-modal-btn');
     const addItemControls = document.getElementById('add-item-controls');
+    const orderTotalPriceSpan = document.getElementById('order-total-price');
 
     // --- Estado ---
     let allTables = [], allMenuItems = [], allCategories = [], currentOrderItems = [];
@@ -40,14 +41,14 @@ export const waiterOrdersController = () => {
 
     // --- API Simulada ---
     const FAKE_TABLES_DB = Array.from({ length: 12 }, (_, i) => ({ id: i + 1, name: `Mesa ${i + 1}`, status: i % 3 === 0 ? 'occupied' : 'available', orderId: i % 3 === 0 ? `ORD${String(i + 1).padStart(3, '0')}` : null, orderStatus: i % 3 === 0 ? (i % 2 === 0 ? 'pending' : 'preparing') : null }));
-    const FAKE_MENU_DB = [ { id: 'P01', name: 'Sushi Roll California', category: 'sushi' }, { id: 'P02', name: 'Burrito Teriyaki', category: 'burrito' }, { id: 'P03', name: 'Gyoza de Cerdo', category: 'entradas' }, { id: 'B01', name: 'Coca-Cola', category: 'bebidas' }, { id: 'D01', name: 'Tarta de Matcha', category: 'postres' } ];
+    const FAKE_MENU_DB = [ { id: 'P01', name: 'Sushi Roll California', category: 'sushi', price: 12.50 }, { id: 'P02', name: 'Burrito Teriyaki', category: 'burrito', price: 15.00 }, { id: 'P03', name: 'Gyoza de Cerdo', category: 'entradas', price: 7.00 }, { id: 'B01', name: 'Coca-Cola', category: 'bebidas', price: 2.50 }, { id: 'D01', name: 'Tarta de Matcha', category: 'postres', price: 5.00 } ];
     const FAKE_CATEGORIES = ['sushi', 'burrito', 'entradas', 'bebidas', 'postres'];
 
     const fetchTables = async () => new Promise(r => setTimeout(() => r([...FAKE_TABLES_DB]), 200));
     const fetchMenuAndCategories = async () => new Promise(r => setTimeout(() => r({ menu: FAKE_MENU_DB, categories: FAKE_CATEGORIES }), 200));
     const fetchOrderById = async (orderId) => new Promise(r => {
         const table = FAKE_TABLES_DB.find(t => t.orderId === orderId);
-        if(table) r({ id: orderId, tableId: table.id, status: table.orderStatus, items: [{ productId: 'P01', name: 'Sushi Roll California', quantity: 2, notes: 'Extra wasabi' }] });
+        if(table) r({ id: orderId, tableId: table.id, status: table.orderStatus, items: [{ productId: 'P01', name: 'Sushi Roll California', quantity: 2, notes: 'Extra wasabi', price: 12.50 }] });
         else r(null);
     });
     const updateOrderApi = async (orderId, items) => new Promise(r => setTimeout(() => { console.log(`Updating order ${orderId}`, items); r({success: true}); }, 400));
@@ -59,7 +60,7 @@ export const waiterOrdersController = () => {
     }, 100));
 
     // --- Lógica de Renderizado ---
-    const renderTables = () => {
+    const renderPage = () => {
         const startIndex = (currentPage - 1) * itemsPerPage;
         const pageTables = allTables.slice(startIndex, startIndex + itemsPerPage);
         tablesGrid.innerHTML = pageTables.map(table => `
@@ -92,7 +93,7 @@ export const waiterOrdersController = () => {
             pageBtn.textContent = i;
             pageBtn.className = 'pagination-btn';
             if (i === currentPage) pageBtn.classList.add('active');
-            pageBtn.onclick = () => { currentPage = i; renderTables(); };
+            pageBtn.onclick = () => { currentPage = i; renderPage(); };
             pageLi.appendChild(pageBtn);
             ul.appendChild(pageLi);
         }
@@ -100,24 +101,28 @@ export const waiterOrdersController = () => {
     };
 
     const renderOrderItems = () => {
-        orderItemsList.innerHTML = currentOrderItems.length > 0
-            ? currentOrderItems.map((item, index) => `
-                <div class="order-item-entry">
-                    <span>${item.quantity}x ${item.name} ${item.notes ? `<em>(${item.notes})</em>` : ''}</span>
-                    <button type="button" class="btn btn--danger btn--tiny remove-item-btn" data-index="${index}">&times;</button>
-                </div>
-              `).join('')
-            : '<p>Aún no hay artículos en este pedido.</p>';
-        orderItemsList.querySelectorAll('.remove-item-btn').forEach(btn => btn.onclick = (e) => {
-            currentOrderItems.splice(e.currentTarget.dataset.index, 1);
-            renderOrderItems();
-        });
+        let total = 0;
+        if (currentOrderItems.length > 0) {
+            orderItemsList.innerHTML = currentOrderItems.map((item, index) => {
+                const subtotal = item.price * item.quantity;
+                total += subtotal;
+                return `
+                    <div class="order-item-entry">
+                        <span>${item.quantity}x ${item.name} ${item.notes ? `<em>(${item.notes})</em>` : ''}</span>
+                        <span><strong>$${subtotal.toFixed(2)}</strong></span>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            orderItemsList.innerHTML = '<p>Aún no hay artículos en este pedido.</p>';
+        }
+        orderTotalPriceSpan.textContent = `$${total.toFixed(2)}`;
     };
 
     const populateCategoryFilter = () => categoryFilterSelect.innerHTML = ['<option value="all">Todas</option>', ...allCategories.map(c => `<option value="${c}">${c}</option>`)].join('');
     const populateItemSelect = (category = 'all') => {
         const items = category === 'all' ? allMenuItems : allMenuItems.filter(i => i.category === category);
-        itemSelect.innerHTML = items.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
+        itemSelect.innerHTML = items.map(i => `<option value="${i.id}">${i.name} ($${i.price.toFixed(2)})</option>`).join('');
     };
 
     // --- Lógica de la Interfaz ---
@@ -196,7 +201,7 @@ export const waiterOrdersController = () => {
         confirmAddItemBtn.onclick = () => {
             const selectedItem = allMenuItems.find(i => i.id === itemSelect.value);
             if (selectedItem) {
-                currentOrderItems.push({ productId: selectedItem.id, name: selectedItem.name, quantity: itemQuantityInput.valueAsNumber, notes: itemNotesInput.value });
+                currentOrderItems.push({ productId: selectedItem.id, name: selectedItem.name, quantity: itemQuantityInput.valueAsNumber, notes: itemNotesInput.value, price: selectedItem.price });
                 renderOrderItems();
             }
             addItemSection.style.display = 'none';
@@ -216,24 +221,20 @@ export const waiterOrdersController = () => {
             const menuData = await fetchMenuAndCategories();
             allMenuItems = menuData.menu;
             allCategories = menuData.categories;
+            
             populateCategoryFilter();
             populateItemSelect();
             
-            // CORRECCIÓN: Se llama a renderPage en lugar de renderTables
-            renderPage(); 
+            renderPage();
         } catch (error) {
             console.error(error);
             tablesGrid.innerHTML = '<div class="error-message">Error al cargar datos.</div>';
         }
     };
     
-    // CORRECCIÓN: Se elimina la función duplicada
-    const renderPage = () => {
-        renderTables();
-    };
-
     attachListeners();
     loadInitialData();
 };
+
 
 

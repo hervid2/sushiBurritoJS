@@ -1,55 +1,55 @@
 /* src/assets/styles/pages/waiter/waiterOrdersManagement.css */
 
 .waiter-orders-page {
-    width: 90%;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 2rem 0;
+  width: 90%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem 0;
 }
 
 .waiter-orders__title {
-    color: var(--color-primary);
-    font-size: var(--text-2xl);
-    margin-bottom: 2rem;
-    text-align: center;
+  color: var(--color-primary);
+  font-size: var(--text-2xl);
+  margin-bottom: 2rem;
+  text-align: center;
 }
 
 .tables-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 1.5rem;
-    min-height: 400px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  min-height: 400px;
 }
 
 .table-card {
-    background-color: white;
-    border-radius: var(--border-radius);
-    padding: 1.5rem;
-    box-shadow: var(--shadow-sm);
-    border-left: 5px solid;
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  background-color: white;
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  border-left: 5px solid;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
 .table-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-md);
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
 }
 
 .table-card--available { border-left-color: var(--color-success); }
 .table-card--occupied { border-left-color: var(--color-danger); }
 
 .table-card__header {
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--border-color);
-    margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 1rem;
 }
 
 .table-card__name {
-    font-weight: 700;
-    font-size: var(--text-xl);
-    color: var(--color-primary);
+  font-weight: 700;
+  font-size: var(--text-xl);
+  color: var(--color-primary);
 }
 
 .table-card__body { flex-grow: 1; }
@@ -59,21 +59,21 @@
 
 /* Estilos para el modal de pedido */
 .order-items-list-container {
-    max-height: 150px;
-    overflow-y: auto;
-    border: 1px solid var(--color-light-gray);
-    border-radius: var(--border-radius-small);
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-    background-color: var(--color-light-bg-alt);
+  max-height: 150px;
+  overflow-y: auto;
+  border: 1px solid var(--color-light-gray);
+  border-radius: var(--border-radius-small);
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  background-color: var(--color-light-bg-alt);
 }
 
 #order-modal .order-status-display {
-    padding: 0.75rem;
-    border-radius: var(--border-radius-small);
-    margin-bottom: 1rem;
-    font-weight: 600;
-    text-align: center;
+  padding: 0.75rem;
+  border-radius: var(--border-radius-small);
+  margin-bottom: 1rem;
+  font-weight: 600;
+  text-align: center;
 }
 
 #order-modal .order-status--pending { background-color: #fff3cd; color: #856404; }
@@ -81,12 +81,23 @@
 #order-modal .order-status--completed { background-color: #d4edda; color: #155724; }
 
 #order-modal .order-item-entry {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem;
-    border-bottom: 1px dashed var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  border-bottom: 1px dashed var(--border-color);
 }
 #order-modal .order-item-entry:last-child {
-    border-bottom: none;
+  border-bottom: none;
+}
+.modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+.order-total {
+  margin-right: auto;
+  font-size: var(--text-lg);
+  font-weight: 700;
 }

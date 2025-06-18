@@ -1,54 +1,64 @@
-/*
- * Estilos específicos para la vista de Estado de Pedidos del Mesero
- */
+/* src/assets/styles/pages/waiter/waiterOrdersStatus.css*/
 .waiter-orders-status-page {
-    width: 100%;
-    max-width: 1400px;
-    padding: var(--spacing-large);
-    margin: 0 auto;
+  width: 90%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem 0;
+}
+
+.waiter-orders-status__header {
+  margin-bottom: 2rem;
+  text-align: center;
 }
 
 .waiter-orders-status__title {
-    color: var(--color-primary);
-    font-size: var(--text-2xl);
-    margin-bottom: var(--spacing-large);
-    text-align: center;
+  color: var(--color-primary);
+  font-size: var(--text-2xl);
 }
 
-/* Estilos para los badges de estado en la tabla */
+/* Aplicar el estilo de tarjeta al contenedor de la tabla */
+.waiter-orders-status-page .table-container {
+  background-color: var(--color-background);
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+}
+
+/* --- ESTILOS DE TABLA CONSISTENTES --- */
+.waiter-orders-status-page .table thead th {
+  background-color: var(--color-secondary); /* Encabezado verde */
+  color: var(--color-text-light);
+  border-bottom: 2px solid var(--color-secondary-dark);
+}
+
+.waiter-orders-status-page .table tbody tr:nth-child(odd) {
+  background-color: var(--color-background); /* Filas impares blancas */
+}
+
+.waiter-orders-status-page .table tbody tr:nth-child(even) {
+  background-color: var(--color-light-bg-alt); /* Filas pares gris sutil */
+}
+
+.waiter-orders-status-page .table tbody tr:hover {
+  background-color: var(--color-primary-light); /* Hover naranja claro */
+}
+
+
+/* --- Estilos para los badges de estado --- */
 .status-badge {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    border-radius: var(--border-radius-large);
-    font-size: var(--text-xs);
-    font-weight: 700;
-    text-transform: uppercase;
-    text-align: center;
-    color: var(--color-text);
-    border: 1px solid transparent;
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--border-radius-large);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: capitalize;
+  text-align: center;
+  color: var(--color-text);
+  border: 1px solid transparent;
 }
 
-.status-badge--pending {
-    background-color: var(--color-warning);
-    border-color: #e6a700;
-}
-.status-badge--preparing {
-    background-color: var(--color-info);
-    color: var(--color-text-light);
-    border-color: #117a8b;
-}
-.status-badge--ready {
-    background-color: var(--color-success);
-    color: var(--color-text-light);
-    border-color: #1e7e34;
-}
-.status-badge--completed {
-    background-color: var(--color-light-gray);
-    color: var(--color-gray);
-    border-color: #adb5bd;
-}
-.status-badge--cancelled {
-    background-color: var(--color-danger);
-    color: var(--color-text-light);
-    border-color: #b21f2d;
-}
+.status-badge--pending { background-color: var(--color-warning); border-color: #e6a700; }
+.status-badge--preparing { background-color: var(--color-info); color: var(--color-text-light); border-color: #117a8b; }
+.status-badge--ready { background-color: var(--color-success); color: var(--color-text-light); border-color: #1e7e34; }
+.status-badge--completed { background-color: var(--color-light-gray); color: var(--color-gray); border-color: #adb5bd; }
+.status-badge--cancelled { background-color: var(--color-danger); color: var(--color-text-light); border-color: #b21f2d; }
