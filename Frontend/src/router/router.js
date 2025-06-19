@@ -92,8 +92,8 @@ export const loadContent = async () => {
     let userRole = localStorage.getItem('userRole');
 
     // Bloque de pruebas (comentar para producción)
-    isAuthenticated = true;
-    userRole = 'admin';
+    // isAuthenticated = true;
+    // userRole = 'admin'; // Cambiar a 'waiter' o 'kitchen' según sea necesario para pruebas
     
     // --- LÓGICA DE REDIRECCIÓN Y SEGURIDAD ---
     if (path === "kitchen/orders") {
