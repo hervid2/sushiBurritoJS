@@ -1,6 +1,4 @@
-/*
- * Estilos para la gestión de usuarios en el panel de administración
- */
+/* src/assets/styles/pages/admin/users-management.css */
 
 .users-management-page {
     width: 90%;
@@ -24,7 +22,6 @@
     margin: 0;
 }
 
-/* --- Formulario de Usuario --- */
 .user-form-section {
     background-color: var(--color-background);
     padding: 2rem;
@@ -40,26 +37,19 @@
     margin-bottom: 1.5rem;
 }
 
-/* --- Estilos para la tabla --- */
-
-/* Filas impares con fondo blanco */
 .users-management-page .table tbody tr:nth-child(odd) {
-    background-color: var(--color-background); /* Blanco absoluto */
+    background-color: var(--color-background);
 }
 
-/* Filas pares con fondo gris sutil */
 .users-management-page .table tbody tr:nth-child(even) {
-    background-color: var(--color-light-bg-alt); /* Gris muy claro */
+    background-color: var(--color-light-bg-alt);
 }
 
-/* Efecto hover para todas las filas */
 .users-management-page .table tbody tr:hover {
-    background-color: var(--color-primary-light); /* Naranja muy claro */
-    cursor: default; /* Evita que parezca clickeable */
+    background-color: var(--color-primary-light);
+    cursor: default;
 }
 
-
-/* --- Estilos Adicionales para los Badges de Rol --- */
 .role-badge {
     padding: 0.25rem 0.75rem;
     border-radius: var(--border-radius-large);
@@ -69,20 +59,48 @@
     color: var(--color-text-light);
 }
 
-.role-admin {
-    background-color: var(--color-primary); /* Naranja */
+.role-admin { background-color: var(--color-primary); }
+.role-waiter { background-color: var(--color-info); }
+.role-kitchen { background-color: var(--color-secondary); }
+
+/* Estilos de paginación consistentes */
+.pagination-container {
+    margin-top: 1.5rem;
+    padding: 1rem 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.pagination-container ul {
+    display: flex;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.pagination-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--color-background);
+    color: var(--color-primary);
+    cursor: pointer;
+    border-radius: var(--border-radius-small);
+    transition: all 0.2s ease-in-out;
+}
+.pagination-btn:hover:not(:disabled) {
+    background-color: var(--color-primary);
+    color: var(--color-text-light);
+    border-color: var(--color-primary);
+}
+.pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.pagination-btn.active {
+    background-color: var(--color-primary);
+    color: var(--color-text-light);
+    font-weight: 700;
+    border-color: var(--color-primary);
 }
 
-.role-waiter {
-    background-color: var(--color-info); /* Azul */
-}
 
-.role-kitchen {
-    background-color: var(--color-secondary); /* Verde */
-}
-
-
-/* --- Responsive (sin cambios) --- */
 @media (max-width: 768px) {
     .users-management__header {
         flex-direction: column;

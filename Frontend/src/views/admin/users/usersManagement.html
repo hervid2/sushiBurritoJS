@@ -22,8 +22,8 @@
             </div>
             <div class="form-group">
                 <label for="password" class="form-label">Contraseña:</label>
-                <input type="password" id="password" class="form-control">
-                <small class="form-text">Asegúrese de usar una contraseña segura.</small>
+                <input type="password" id="password" class="form-control" title="Mínimo 8 caracteres, incluyendo mayúscula, minúscula, número y caracter especial.">
+                <small class="form-text">Mín. 8 caracteres, 1 mayúscula, 1 minúscula, 1 número, 1 caracter especial.</small>
             </div>
             <div class="form-group">
                 <label for="role" class="form-label">Rol:</label>
@@ -42,7 +42,6 @@
 
     <div class="table-container">
         <table class="table" id="users-table">
-            <!-- SE AÑADEN LOS ENCABEZADOS DE LA TABLA -->
             <thead>
                 <tr>
                     <th>ID</th>
@@ -57,4 +56,6 @@
             </tbody>
         </table>
     </div>
+    <!-- Contenedor para el paginador -->
+    <div class="pagination-container" id="users-pagination"></div>
 </div>

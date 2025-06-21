@@ -1,14 +1,39 @@
+// Importa la librería SweetAlert2
+import Swal from 'sweetalert2';
+
 /**
- * Muestra una alerta simple en el navegador.
- * En un proyecto real, usarías una librería de alertas como SweetAlert2.
+ * Muestra una notificación tostada en la esquina de la pantalla usando SweetAlert2.
  * @param {string} message - El mensaje a mostrar.
- * @param {string} type - El tipo de alerta (ej. 'success', 'error', 'info', 'warning').
+ * @param {string} type - El tipo de alerta ('success', 'error', 'info', 'warning').
  */
 export const showAlert = (message, type = 'info') => {
-    // Por ahora, solo usaremos console.log o un alert nativo.
-    // Más adelante, aquí integrarías SweetAlert2.
-    console.log(`Alerta (${type}): ${message}`);
-    // alert(`${type.toUpperCase()}: ${message}`); // Descomenta si quieres ver alerts nativos
-};
+    // Swal.mixin crea una configuración reutilizable para las alertas
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end', // Las notificaciones aparecerán en la esquina superior derecha
+        showConfirmButton: false,
+        timer: 3000, // La alerta se cierra automáticamente después de 3 segundos
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+        },
+        // Añade clases de animación de SweetAlert2
+        showClass: {
+            popup: 'swal2-show',
+            backdrop: 'swal2-backdrop-show',
+            icon: 'swal2-icon-show'
+        },
+        hideClass: {
+            popup: 'swal2-hide',
+            backdrop: 'swal2-backdrop-hide',
+            icon: 'swal2-icon-hide'
+        }
+    });
 
-// Puedes añadir más funciones de utilidad para alertas aquí si lo deseas.
+    // Muestra la alerta
+    Toast.fire({
+        icon: type, // 'success', 'error', 'warning', 'info'
+        title: message
+    });
+};

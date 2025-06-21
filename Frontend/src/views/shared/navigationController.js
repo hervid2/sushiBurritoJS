@@ -11,14 +11,14 @@ export const navigationController = (props) => {
     const navLinks = {
         admin: `
             <a href="#/admin/dashboard" class="nav__link" data-path="admin/dashboard">Dashboard</a>
-            <a href="#/admin/users" class="nav__link" data-path="admin/users">Usuarios</a>
-            <a href="#/admin/menu" class="nav__link" data-path="admin/menu">Menú</a>
-            <a href="#/admin/stats" class="nav__link" data-path="admin/stats">Estadísticas</a>
+            <a href="#/admin/users" class="nav__link" data-path="admin/users">Gestión de Usuarios</a>
+            <a href="#/admin/menu" class="nav__link" data-path="admin/menu">Menú y mesas</a>
+            <a href="#/admin/stats" class="nav__link" data-path="admin/stats">Estadísticas ventas</a>
         `,
         waiter: `
-            <a href="#/waiter/orders" class="nav__link" data-path="waiter/orders">Mesas/Pedidos</a>
+            <a href="#/waiter/orders" class="nav__link" data-path="waiter/orders">Gestión de Pedidos</a>
             <a href="#/waiter/orders-status" class="nav__link" data-path="waiter/orders-status">Estado Pedidos</a>
-            <a href="#/waiter/invoice" class="nav__link" data-path="waiter/invoice">Facturar</a>
+            <a href="#/waiter/invoice" class="nav__link" data-path="waiter/invoice">Facturar pedido</a>
         `,
         kitchen: `
             <a href="#/kitchen/orders/pending" class="nav__link" data-path="kitchen/orders/pending">Pendientes</a>

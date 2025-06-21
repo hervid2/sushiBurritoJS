@@ -1,6 +1,4 @@
-/*
- * Estilos para la gestión del menú en el panel de administración
- */
+/* src/assets/styles/pages/admin/menu-management.css */
 
 .menu-management-page {
     width: 90%;
@@ -13,50 +11,107 @@
     color: var(--color-primary);
     font-size: var(--text-2xl);
     margin-bottom: 2rem;
+    text-align: center;
 }
 
-.management-controls {
-    display: flex;
-    justify-content: flex-start;
-    margin-bottom: 2rem;
-}
-
-/* --- Formulario de Ítem del Menú --- */
-.menu-item-form-section {
+.management-section {
     background-color: var(--color-background);
     padding: 2rem;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-sm);
-    /* Aumenta el espacio inferior */
     margin-bottom: 3rem; 
 }
 
-.menu-item-form-section h3 {
-    font-size: var(--text-xl);
-    color: var(--color-primary);
-    margin-top: 0;
+.management-section__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 1.5rem;
 }
 
-/* --- Estilos para la tabla --- */
+.management-section h3 {
+    font-size: var(--text-xl);
+    color: var(--color-primary);
+    margin: 0;
+}
 
-/* Filas impares con fondo blanco */
+.form-container {
+    padding: 1.5rem;
+    border: 1px solid var(--color-light-gray);
+    border-radius: var(--border-radius);
+    margin-bottom: 2rem;
+    background-color: var(--color-light-bg-alt);
+}
+.form-container h4 {
+    margin-top: 0;
+    color: var(--color-secondary-dark);
+}
+
+.inline-form {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+}
+
+.inline-form .form-group {
+    flex-grow: 1;
+}
+
 .menu-management-page .table tbody tr:nth-child(odd) {
-    background-color: var(--color-background); /* Blanco */
+    background-color: var(--color-background);
 }
-
-/* Filas pares con fondo gris sutil */
 .menu-management-page .table tbody tr:nth-child(even) {
-    background-color: var(--color-light-bg-alt); /* Gris muy claro */
+    background-color: var(--color-light-bg-alt);
 }
-
-/* Se preserva el efecto hover para todas las filas */
 .menu-management-page .table tbody tr:hover {
-    background-color: var(--color-primary-light); /* Naranja muy claro */
+    background-color: var(--color-primary-light);
+}
+.menu-management-page .table .table-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Estilos de paginación consistentes */
+.pagination-container {
+    margin-top: 1.5rem;
+    padding: 1rem 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.pagination-container ul {
+    display: flex;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.pagination-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--color-background);
+    color: var(--color-primary);
+    cursor: pointer;
+    border-radius: var(--border-radius-small);
+    transition: all 0.2s ease-in-out;
+}
+.pagination-btn:hover:not(:disabled) {
+    background-color: var(--color-primary);
+    color: var(--color-text-light);
+    border-color: var(--color-primary);
+}
+.pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.pagination-btn.active {
+    background-color: var(--color-primary);
+    color: var(--color-text-light);
+    font-weight: 700;
+    border-color: var(--color-primary);
 }
 
 
-/* Estilos para los Badges de Categoría */
 .category-badge {
     padding: 0.25rem 0.75rem;
     border-radius: var(--border-radius-large);
@@ -67,7 +122,6 @@
     display: inline-block;
 }
 
-/* Categorías de menú con colores específicos */
 .category-sushi { background-color: #007bff; }
 .category-burrito { background-color: #fd7e14; }
 .category-entradas { background-color: #28a745; }

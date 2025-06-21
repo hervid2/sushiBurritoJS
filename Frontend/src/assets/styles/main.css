@@ -2,6 +2,7 @@
  * Archivo principal de estilos
  * Importa todos los demás archivos CSS en el orden correcto
  */
+@import 'sweetalert2/dist/sweetalert2.min.css';
 
 /* Variables y reset */
 @import url('./base/variables.css');

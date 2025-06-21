@@ -20,19 +20,24 @@ export const waiterInvoiceGeneratorController = () => {
     // --- API Simulada ---
     const fetchOrdersForInvoice = async () => new Promise(r => setTimeout(() => r([ { id: 'ORD123', table: 'Mesa 5', items: [{ id: 'P01', name: 'Sushi Roll', quantity: 2, price: 12.50 }, { id: 'B01', name: 'Coca-Cola', quantity: 1, price: 2.50 }] } ]), 200));
     
-    // --- Lógica de Cálculo y Renderizado ---
+    // --- Lógica de Cálculo y Renderizado (ACTUALIZADA) ---
     const calculateAndRenderTotals = (isInitialLoad = false) => {
         const subtotal = currentItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
         const tax = subtotal * 0.08;
         
+        // Si es la carga inicial, calcula la propina sugerida del 8% sobre (subtotal + impuesto)
         if (isInitialLoad) {
-            const defaultTip = (subtotal + tax) * 0.08;
-            tipInput.value = defaultTip.toFixed(2);
+            const suggestedTip = (subtotal + tax) * 0.08;
+            tipInput.value = suggestedTip.toFixed(2);
         }
 
+        // Obtiene el valor actual de la propina (ya sea el sugerido o el editado por el usuario)
         const tip = parseFloat(tipInput.value) || 0;
+        
+        // Calcula el total final
         const total = subtotal + tax + tip;
         
+        // Actualiza la interfaz
         summarySubtotal.textContent = `$${subtotal.toFixed(2)}`;
         summaryTax.textContent = `$${tax.toFixed(2)}`;
         summaryTotal.textContent = `$${total.toFixed(2)}`;
@@ -54,7 +59,9 @@ export const waiterInvoiceGeneratorController = () => {
         
         tableBody.querySelectorAll('.edit-item-btn').forEach(btn => btn.onclick = (e) => handleEditItem(e.currentTarget.dataset.index));
         tableBody.querySelectorAll('.delete-item-btn').forEach(btn => btn.onclick = (e) => handleDeleteItem(e.currentTarget.dataset.index, e.currentTarget.dataset.name));
-        calculateAndRenderTotals();
+        
+        // Al renderizar la tabla, no se resetea la propina, solo se recalculan los totales
+        calculateAndRenderTotals(false); 
     };
 
     // --- Manejadores de Eventos ---
@@ -62,8 +69,10 @@ export const waiterInvoiceGeneratorController = () => {
         const orderId = selectOrder.value;
         if (!orderId) { showAlert('Por favor, seleccione un pedido.', 'warning'); return; }
         currentItems = [{ id: 'P01', name: 'Sushi Roll', quantity: 2, price: 12.50 }, { id: 'B01', name: 'Coca-Cola', quantity: 1, price: 2.50 }];
-        calculateAndRenderTotals(true); // true para calcular la propina por defecto
-        renderTable();
+        
+        renderTable(); // Renderiza la tabla primero
+        calculateAndRenderTotals(true); // Luego calcula totales Y la propina por defecto
+        
         detailsSection.style.display = 'block';
     };
 
@@ -78,7 +87,7 @@ export const waiterInvoiceGeneratorController = () => {
     const handleSaveEdit = () => {
         const index = editItemForm.querySelector('#edit-item-index').value;
         currentItems[index].quantity = parseInt(editItemQuantity.value, 10);
-        renderTable();
+        renderTable(); // Esto automáticamente recalculará los totales
         editItemModal.classList.remove('is-active');
     };
 
@@ -86,7 +95,7 @@ export const waiterInvoiceGeneratorController = () => {
         try {
             await showConfirmModal('Confirmar Eliminación', `¿Está seguro de que desea eliminar <strong>${name}</strong> de la factura?`);
             currentItems.splice(index, 1);
-            renderTable();
+            renderTable(); // Recalcular todo al eliminar un ítem
             showAlert('Artículo eliminado.', 'success');
         } catch { console.log("Eliminación cancelada."); }
     };
@@ -127,7 +136,8 @@ export const waiterInvoiceGeneratorController = () => {
         selectOrder.innerHTML += orders.map(o => `<option value="${o.id}">Pedido #${o.id} - ${o.table}</option>`).join('');
         
         loadBtn.onclick = handleLoadOrder;
-        tipInput.oninput = () => calculateAndRenderTotals(false); // false para no resetear la propina
+        // El listener 'oninput' asegura que los totales se recalculen cada vez que el usuario escribe en el campo de propina
+        tipInput.oninput = () => calculateAndRenderTotals(false); 
         finalizeBtn.onclick = handleFinalizeInvoice;
         modifyInvoiceBtn.onclick = handleModifyInvoice;
         sendEmailBtn.onclick = () => sendEmailModal.classList.add('is-active');

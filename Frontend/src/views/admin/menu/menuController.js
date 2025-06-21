@@ -10,169 +10,224 @@ export const menuController = () => {
     const addMenuItemBtn = document.getElementById('add-menu-item-btn');
     const menuItemFormSection = document.getElementById('menu-item-form-section');
     const menuItemForm = document.getElementById('menu-item-form');
-    const menuItemIdInput = document.getElementById('menu-item-id');
-    const itemNameInput = document.getElementById('item-name');
-    const itemDescriptionInput = document.getElementById('item-description');
-    const itemPriceInput = document.getElementById('item-price');
-    const itemCategorySelect = document.getElementById('item-category');
-    const cancelMenuItemFormBtn = document.getElementById('cancel-menu-item-form-btn');
     const menuItemsTable = document.getElementById('menu-items-table');
+    const menuPaginationContainer = document.getElementById('menu-items-pagination');
+    const categoriesTable = document.getElementById('categories-table');
+    const tablesTable = document.getElementById('tables-table');
+    const addCategoryForm = document.getElementById('add-category-form');
+    const addTableForm = document.getElementById('add-table-form');
+    const itemCategorySelect = document.getElementById('item-category');
 
-    // --- Funciones de Utilidad ---
-    const showForm = (isEditing = false) => {
+    // --- Estado ---
+    let FAKE_MENU_DB = Array.from({ length: 25 }, (_, i) => ({ id: 101 + i, name: `Plato de Ejemplo ${i + 1}`, description: 'Descripción del plato.', price: (10 + i * 0.5), category: ['sushi', 'burrito', 'entradas', 'bebidas', 'postres'][i % 5] }));
+    let FAKE_CATEGORIES_DB = [ { id: 'cat1', name: 'sushi' }, { id: 'cat2', name: 'burrito' }, { id: 'cat3', name: 'entradas' }, { id: 'cat4', name: 'bebidas' }, { id: 'cat5', name: 'postres' } ];
+    let FAKE_TABLES_DB = Array.from({ length: 12 }, (_, i) => ({ id: `t${i+1}`, name: `Mesa ${i+1}` }));
+    
+    let menuCurrentPage = 1;
+    const menuItemsPerPage = 8;
+    
+    // Objeto para almacenar colores de categorías dinámicas
+    const categoryColorMap = {};
+    const predefinedCategories = ['sushi', 'burrito', 'entradas', 'bebidas', 'postres'];
+
+    // --- Lógica General ---
+    const getRandomColor = () => {
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    };
+
+    const getCategoryStyle = (category) => {
+        // Si es una categoría predefinida, usa la clase CSS
+        if (predefinedCategories.includes(category)) {
+            return `class="category-badge category-${category}"`;
+        }
+        // Si no, asigna un color aleatorio (o usa uno ya asignado)
+        if (!categoryColorMap[category]) {
+            categoryColorMap[category] = getRandomColor();
+        }
+        return `class="category-badge" style="background-color: ${categoryColorMap[category]}"`;
+    };
+
+    const showItemForm = (isEditing = false, item = {}) => {
         menuItemFormSection.style.display = 'block';
-
-        // Seleccionar los elementos por su ID directamente desde el documento
         const titleElement = document.getElementById('form-title');
-        const saveButton = document.getElementById('save-menu-item-btn');
-
         if (titleElement) {
-            titleElement.textContent = isEditing ? 'Actualizar un plato/bebida existente' : 'Añadir Nuevo Plato/Bebida';
+            titleElement.textContent = isEditing ? 'Editar Plato/Bebida Existente' : 'Añadir Nuevo Plato/Bebida';
         }
-        if (saveButton) {
-            saveButton.textContent = isEditing ? 'Guardar Cambios' : 'Crear Ítem';
-        }
-
-        if (!isEditing) {
-            menuItemForm.reset();
-            menuItemIdInput.value = '';
-        }
+        menuItemForm.querySelector('#menu-item-id').value = item.id || '';
+        menuItemForm.querySelector('#item-name').value = item.name || '';
+        menuItemForm.querySelector('#item-description').value = item.description || '';
+        menuItemForm.querySelector('#item-price').value = item.price || '';
+        menuItemForm.querySelector('#item-category').value = item.category || '';
     };
-    const hideForm = () => {
-        menuItemFormSection.style.display = 'none';
-        menuItemForm.reset();
-        menuItemIdInput.value = '';
+    const hideItemForm = () => { menuItemFormSection.style.display = 'none'; };
+
+    // --- Renderizado ---
+    const renderMenuItems = () => {
+        const startIndex = (menuCurrentPage - 1) * menuItemsPerPage;
+        const pageItems = FAKE_MENU_DB.slice(startIndex, startIndex + menuItemsPerPage);
+
+        menuItemsTable.innerHTML = `
+            <thead>
+                <tr><th>Nombre</th><th>Descripción</th><th>Precio</th><th>Categoría</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+                ${pageItems.map(item => `
+                    <tr>
+                        <td>${item.name}</td>
+                        <td>${item.description}</td>
+                        <td>$${item.price.toFixed(2)}</td>
+                        <td><span ${getCategoryStyle(item.category)}>${item.category}</span></td>
+                        <td class="table-actions">
+                            <button class="btn btn--info btn--small edit-btn" data-id="${item.id}">Editar</button>
+                            <button class="btn btn--danger btn--small delete-btn" data-id="${item.id}" data-name="${item.name}">Eliminar</button>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>`;
+        
+        renderMenuPagination();
+        menuItemsTable.querySelectorAll('.edit-btn').forEach(btn => btn.onclick = (e) => handleEditClick(e.currentTarget.dataset.id));
+        menuItemsTable.querySelectorAll('.delete-btn').forEach(btn => btn.onclick = (e) => handleDeleteMenuItem(e.currentTarget.dataset.id, e.currentTarget.dataset.name));
+    };
+    
+    const renderMenuPagination = () => {
+        const totalPages = Math.ceil(FAKE_MENU_DB.length / menuItemsPerPage);
+        if (totalPages <= 1) {
+            menuPaginationContainer.innerHTML = '';
+            return;
+        }
+        let buttons = '';
+        for (let i = 1; i <= totalPages; i++) {
+            buttons += `<li><button class="pagination-btn ${i === menuCurrentPage ? 'active' : ''}" data-page="${i}">${i}</button></li>`;
+        }
+        menuPaginationContainer.innerHTML = `<ul>${buttons}</ul>`;
+        
+        menuPaginationContainer.querySelectorAll('.pagination-btn').forEach(btn => {
+            btn.onclick = () => {
+                menuCurrentPage = parseInt(btn.dataset.page);
+                renderMenuItems();
+            };
+        });
     };
 
-    // --- API Simulada  ---
-    const FAKE_MENU_DB = [
-        { id: 101, name: 'Sushi Roll California', description: 'Aguacate, pepino, kanikama.', price: 12.50, category: 'sushi' },
-        { id: 102, name: 'Burrito de Pollo Teriyaki', description: 'Pollo teriyaki, arroz, vegetales frescos.', price: 9.99, category: 'burrito' },
-        { id: 103, name: 'Gyoza de Cerdo (6u)', description: 'Empanadillas japonesas fritas.', price: 6.00, category: 'entradas' },
-        { id: 104, name: 'Coca-Cola (lata)', description: 'Bebida gaseosa refrescante.', price: 2.00, category: 'bebidas' },
-        { id: 105, name: 'Tarta de Matcha', description: 'Postre cremoso de té verde.', price: 4.50, category: 'postres' },
-    ];
+    const renderCategories = () => {
+        categoriesTable.innerHTML = `
+            <thead><tr><th>Nombre de Categoría</th><th>Acción</th></tr></thead>
+            <tbody>
+                ${FAKE_CATEGORIES_DB.map(cat => `
+                    <tr>
+                        <td><span ${getCategoryStyle(cat.name)}>${cat.name}</span></td>
+                        <td class="table-actions"><button class="btn btn--danger btn--small delete-category-btn" data-id="${cat.id}" data-name="${cat.name}">Eliminar</button></td>
+                    </tr>`).join('')}
+            </tbody>`;
+        categoriesTable.querySelectorAll('.delete-category-btn').forEach(btn => btn.onclick = (e) => handleDeleteCategory(e.currentTarget.dataset.id, e.currentTarget.dataset.name));
+        itemCategorySelect.innerHTML = FAKE_CATEGORIES_DB.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+    };
 
-    const fetchMenuItems = async () => new Promise(r => setTimeout(() => r([...FAKE_MENU_DB]), 300));
-    const fetchMenuItemById = async (id) => new Promise(r => setTimeout(() => r(FAKE_MENU_DB.find(item => item.id == id)), 200));
-    const updateMenuItem = async (id, data) => new Promise(r => setTimeout(() => {
-        const index = FAKE_MENU_DB.findIndex(item => item.id == id);
-        if (index !== -1) FAKE_MENU_DB[index] = { ...FAKE_MENU_DB[index], ...data };
-        r({ success: true });
-    }, 400));
-    const createMenuItem = async (data) => new Promise(r => setTimeout(() => {
-        const newId = Math.max(...FAKE_MENU_DB.map(item => item.id)) + 1;
-        FAKE_MENU_DB.push({ id: newId, ...data });
-        r({ success: true });
-    }, 400));
-    const deleteMenuItemApi = async (id) => new Promise(r => setTimeout(() => {
-        const index = FAKE_MENU_DB.findIndex(item => item.id == id);
-        if (index !== -1) FAKE_MENU_DB.splice(index, 1);
-        r({ success: true });
-    }, 300));
+    const renderTables = () => {
+        tablesTable.innerHTML = `
+            <thead><tr><th>Nombre de Mesa</th><th>Acción</th></tr></thead>
+            <tbody>
+                ${FAKE_TABLES_DB.map(table => `
+                    <tr>
+                        <td>${table.name}</td>
+                        <td class="table-actions"><button class="btn btn--danger btn--small delete-table-btn" data-id="${table.id}" data-name="${table.name}">Eliminar</button></td>
+                    </tr>`).join('')}
+            </tbody>`;
+        tablesTable.querySelectorAll('.delete-table-btn').forEach(btn => btn.onclick = (e) => handleDeleteTable(e.currentTarget.dataset.id, e.currentTarget.dataset.name));
+    };
 
-    // --- Lógica de Edición y Borrado ---
-    const handleEditClick = async (itemId) => {
-        const item = await fetchMenuItemById(itemId);
-        if (item) {
-            menuItemIdInput.value = item.id;
-            itemNameInput.value = item.name;
-            itemDescriptionInput.value = item.description;
-            itemPriceInput.value = item.price;
-            itemCategorySelect.value = item.category;
-            showForm(true);
-        } else {
-            showAlert('Ítem del menú no encontrado.', 'error');
-        }
+    // --- Manejadores de Eventos ---
+    const handleSaveMenuItem = async (e) => {
+        e.preventDefault();
+        const id = menuItemForm.querySelector('#menu-item-id').value;
+        const itemData = { name: menuItemForm.querySelector('#item-name').value, description: menuItemForm.querySelector('#item-description').value, price: parseFloat(menuItemForm.querySelector('#item-price').value), category: menuItemForm.querySelector('#item-category').value, };
+        
+        try {
+            await showConfirmModal('Confirmar Cambios', `¿Está seguro de que desea guardar estos cambios?`);
+            if (id) {
+                const index = FAKE_MENU_DB.findIndex(item => item.id == id);
+                if (index !== -1) FAKE_MENU_DB[index] = { ...FAKE_MENU_DB[index], ...itemData };
+                showAlert('Ítem actualizado exitosamente.', 'success');
+            } else {
+                const newId = Math.max(...FAKE_MENU_DB.map(item => item.id || 0)) + 1;
+                FAKE_MENU_DB.push({ id: newId, ...itemData });
+                showAlert('Ítem creado exitosamente.', 'success');
+            }
+            hideItemForm();
+            renderMenuItems();
+        } catch { console.log("Guardado cancelado."); }
+    };
+    
+    const handleEditClick = (itemId) => {
+        const item = FAKE_MENU_DB.find(i => i.id == itemId);
+        if(item) showItemForm(true, item);
     };
 
     const handleDeleteMenuItem = async (itemId, itemName) => {
         try {
-            await showConfirmModal('Confirmar Eliminación', `¿Está seguro de que desea eliminar <strong>${itemName}</strong>?`);
-            await deleteMenuItemApi(itemId);
+            await showConfirmModal('Confirmar Eliminación', `¿Está seguro que desea eliminar <strong>${itemName}</strong>?`);
+            FAKE_MENU_DB = FAKE_MENU_DB.filter(item => item.id != itemId);
+            renderMenuItems();
             showAlert('Ítem eliminado exitosamente.', 'success');
-            loadMenuItems();
-        } catch {
-            console.log('Eliminación de ítem cancelada.');
+        } catch { console.log('Eliminación de ítem cancelada.'); }
+    };
+
+    const handleAddCategory = (e) => {
+        e.preventDefault();
+        const input = document.getElementById('new-category-name');
+        const newCategoryName = input.value.trim().toLowerCase();
+        if (newCategoryName && !FAKE_CATEGORIES_DB.find(c => c.name === newCategoryName)) {
+            FAKE_CATEGORIES_DB.push({ id: `cat${Date.now()}`, name: newCategoryName });
+            renderCategories();
+            input.value = '';
+            showAlert(`Categoría "${newCategoryName}" añadida.`, 'success');
+        } else {
+            showAlert('La categoría no puede estar vacía o ya existe.', 'warning');
         }
+    };
+    const handleDeleteCategory = async (id, name) => {
+        try {
+            await showConfirmModal('Confirmar Eliminación', `¿Seguro que quieres eliminar la categoría <strong>${name}</strong>?`);
+            FAKE_CATEGORIES_DB = FAKE_CATEGORIES_DB.filter(cat => cat.id !== id);
+            renderCategories();
+            showAlert(`Categoría "${name}" eliminada.`, 'success');
+        } catch {}
+    };
+
+    const handleAddTable = (e) => {
+        e.preventDefault();
+        const input = document.getElementById('table-name');
+        const newTableName = input.value.trim();
+        if (newTableName) {
+            FAKE_TABLES_DB.push({ id: `t${Date.now()}`, name: newTableName });
+            renderTables();
+            input.value = '';
+            showAlert(`Mesa "${newTableName}" añadida.`, 'success');
+        }
+    };
+    const handleDeleteTable = async (id, name) => {
+        try {
+            await showConfirmModal('Confirmar Eliminación', `¿Seguro que quieres eliminar la <strong>${name}</strong>?`);
+            FAKE_TABLES_DB = FAKE_TABLES_DB.filter(table => table.id !== id);
+            renderTables();
+            showAlert(`Mesa "${name}" eliminada.`, 'success');
+        } catch {}
     };
     
-    // --- Guardar (Crear o Editar) ---
-    const handleSaveMenuItem = async (event) => {
-        event.preventDefault();
-        const id = menuItemIdInput.value;
-        const itemData = {
-            name: itemNameInput.value,
-            description: itemDescriptionInput.value,
-            price: parseFloat(itemPriceInput.value),
-            category: itemCategorySelect.value,
-        };
-
-        try {
-            if (id) {
-                await updateMenuItem(id, itemData);
-                showAlert('Ítem actualizado exitosamente.', 'success');
-            } else {
-                await createMenuItem(itemData);
-                showAlert('Ítem creado exitosamente.', 'success');
-            }
-            hideForm();
-            loadMenuItems();
-        } catch (error) {
-            showAlert('Error al guardar el ítem.', 'error');
-        }
-    };
-    
-    // --- Renderizado de la Tabla ---
-    const loadMenuItems = async () => {
-        if (!menuItemsTable) return;
-        menuItemsTable.innerHTML = `
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Precio</th>
-                    <th>Categoría</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr><td colspan="5" class="loading-message">Cargando...</td></tr>
-            </tbody>
-        `;
-        const tableBody = menuItemsTable.querySelector('tbody');
-
-        try {
-            const menuItems = await fetchMenuItems();
-            if (menuItems.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No hay ítems en el menú.</td></tr>';
-                return;
-            }
-
-            tableBody.innerHTML = menuItems.map(item => `
-                <tr>
-                    <td>${item.id}</td>
-                    <td>${item.name}</td>
-                    <td>$${item.price.toFixed(2)}</td>
-                    <td><span class="category-badge category-${item.category}">${item.category}</span></td>
-                    <td class="table__actions">
-                        <button class="btn btn--info btn--small edit-btn" data-id="${item.id}">Editar</button>
-                        <button class="btn btn--danger btn--small delete-btn" data-id="${item.id}" data-name="${item.name}">Eliminar</button>
-                    </td>
-                </tr>
-            `).join('');
-
-            menuItemsTable.querySelectorAll('.edit-btn').forEach(btn => btn.onclick = (e) => handleEditClick(e.currentTarget.dataset.id));
-            menuItemsTable.querySelectorAll('.delete-btn').forEach(btn => btn.onclick = (e) => handleDeleteMenuItem(e.currentTarget.dataset.id, e.currentTarget.dataset.name));
-        } catch (error) {
-            tableBody.innerHTML = '<tr><td colspan="5" class="error-message">Error al cargar el menú.</td></tr>';
-        }
-    };
-
     // --- Inicialización ---
-    addMenuItemBtn.addEventListener('click', () => showForm(false));
-    cancelMenuItemFormBtn.addEventListener('click', hideForm);
+    addMenuItemBtn.addEventListener('click', () => showItemForm(false));
     menuItemForm.addEventListener('submit', handleSaveMenuItem);
+    document.getElementById('cancel-menu-item-form-btn').onclick = hideItemForm;
+    addCategoryForm.addEventListener('submit', handleAddCategory);
+    addTableForm.addEventListener('submit', handleAddTable);
     
-    loadMenuItems();
+    renderMenuItems();
+    renderCategories();
+    renderTables();
 };
