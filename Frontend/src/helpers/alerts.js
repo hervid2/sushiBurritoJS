@@ -12,7 +12,7 @@ export const showAlert = (message, type = 'info') => {
         toast: true,
         position: 'top-end', // Las notificaciones aparecerán en la esquina superior derecha
         showConfirmButton: false,
-        timer: 3000, // La alerta se cierra automáticamente después de 3 segundos
+        timer: 4000, // La alerta se cierra automáticamente después de 4 segundos
         timerProgressBar: true,
         didOpen: (toast) => {
             toast.onmouseenter = Swal.stopTimer;
