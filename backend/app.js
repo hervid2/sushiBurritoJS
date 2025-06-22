@@ -1,18 +1,23 @@
-// app.js (en la raíz del proyecto)
+// app.js 
 
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import db from './src/models/index.js';
+
 
 // .env está en la misma carpeta, así que la configuración es directa
 dotenv.config();
 
-// Se importa el archivo de la base de datos desde la carpeta /src
-import db from './src/models/index.js';
-
-// Se importan las rutas desde la carpeta /src
+// --- Importar Rutas ---
 import usuarioRoutes from './src/routes/usuario.routes.js';
 import authRoutes from './src/routes/auth.routes.js';
+import categoriaRoutes from './src/routes/categoria.routes.js'; 
+import productoRoutes from './src/routes/producto.routes.js';
+import mesaRoutes from './src/routes/mesa.routes.js';     
+import pedidoRoutes from './src/routes/pedido.routes.js';
+import facturaRoutes from './src/routes/factura.routes.js';
+import statsRoutes from './src/routes/stats.routes.js';   
 
 const app = express();
 
@@ -25,9 +30,14 @@ app.get('/api', (req, res) => {
     res.json({ message: 'Bienvenido al API de Sushi Burrito.' });
 });
 
-app.use('/api/usuarios', usuarioRoutes);
 app.use('/api/auth', authRoutes);
-// (Aquí agregarás las demás rutas de la misma manera)
+app.use('/api/usuarios', usuarioRoutes);
+app.use('/api/categorias', categoriaRoutes);
+app.use('/api/productos', productoRoutes);
+app.use('/api/mesas', mesaRoutes);      
+app.use('/api/pedidos', pedidoRoutes);  
+app.use('/api/facturas', facturaRoutes);
+app.use('/api/stats', statsRoutes);
 
 
 // --- Conexión y Arranque ---

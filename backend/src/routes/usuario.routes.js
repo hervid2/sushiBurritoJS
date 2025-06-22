@@ -8,8 +8,11 @@ import { verifyToken, isAdmin } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
+// Todas las rutas están protegidas y solo accesibles por un admin
 router.post('/', [verifyToken, isAdmin], usuarioController.createUser);
 router.get('/', [verifyToken, isAdmin], usuarioController.getAllUsers);
-// Aquí añadirías las demás rutas (GET por ID, PUT, DELETE)
+router.get('/:id', [verifyToken, isAdmin], usuarioController.getUserById);
+router.put('/:id', [verifyToken, isAdmin], usuarioController.updateUser);
+router.delete('/:id', [verifyToken, isAdmin], usuarioController.deleteUser);
 
 export default router;

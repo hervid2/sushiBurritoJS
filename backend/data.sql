@@ -135,6 +135,7 @@ describe usuarios;
 describe facturas;
 describe pedidos;
 describe detalle_pedido;
+describe mesas;
 
 ALTER TABLE productos DROP COLUMN valor_total;
 ALTER TABLE productos ADD categoria_id INT, ADD FOREIGN KEY (categoria_id) REFERENCES categorias(categoria_id);
@@ -157,6 +158,7 @@ select * from usuarios;
 select * from productos;
 select * from pedidos;
 select * from facturas;
+select * from mesas;
 -- Insertar las categorías iniciales
 INSERT INTO categorias (nombre) VALUES
 ('Infantil'),

@@ -32,27 +32,37 @@ db.Factura = FacturaModel(sequelize, Sequelize);
 
 // --- Definir Asociaciones ---
 
-// Usuario y Pedido (Un usuario/mesero tiene muchos pedidos)
+// Usuario y Pedido
 db.Usuario.hasMany(db.Pedido, { foreignKey: 'usuario_id' });
 db.Pedido.belongsTo(db.Usuario, { foreignKey: 'usuario_id' });
 
-// Mesa y Pedido (Una mesa puede tener muchos pedidos a lo largo del tiempo)
+// Mesa y Pedido
 db.Mesa.hasMany(db.Pedido, { foreignKey: 'mesa_id' });
 db.Pedido.belongsTo(db.Mesa, { foreignKey: 'mesa_id' });
 
-// Categoria y Producto (Una categoría tiene muchos productos)
+// Categoria y Producto
 db.Categoria.hasMany(db.Producto, { foreignKey: 'categoria_id' });
 db.Producto.belongsTo(db.Categoria, { foreignKey: 'categoria_id' });
 
-// Pedido y Producto (Relación Muchos a Muchos a través de DetallePedido)
+// Pedido y Producto (Muchos a Muchos a través de DetallePedido)
 db.Pedido.belongsToMany(db.Producto, { through: db.DetallePedido, foreignKey: 'pedido_id' });
 db.Producto.belongsToMany(db.Pedido, { through: db.DetallePedido, foreignKey: 'producto_id' });
+
+// *** CORRECCIÓN: Añadir asociaciones directas para DetallePedido ***
+// Un "DetallePedido" pertenece a un Pedido. Un Pedido tiene muchos "DetallePedido".
+db.DetallePedido.belongsTo(db.Pedido, { foreignKey: 'pedido_id' });
+db.Pedido.hasMany(db.DetallePedido, { foreignKey: 'pedido_id' });
+
+// Un "DetallePedido" pertenece a un Producto. Un Producto puede estar en muchos "DetallePedido".
+db.DetallePedido.belongsTo(db.Producto, { foreignKey: 'producto_id' });
+db.Producto.hasMany(db.DetallePedido, { foreignKey: 'producto_id' });
+// *** FIN DE LA CORRECCIÓN ***
 
 // Pedido y Factura (Uno a Uno)
 db.Pedido.hasOne(db.Factura, { foreignKey: 'pedido_id' });
 db.Factura.belongsTo(db.Pedido, { foreignKey: 'pedido_id' });
 
-// MetodoPago y Factura (Un método de pago puede estar en muchas facturas)
+// MetodoPago y Factura
 db.MetodoPago.hasMany(db.Factura, { foreignKey: 'metodo_pago_id' });
 db.Factura.belongsTo(db.MetodoPago, { foreignKey: 'metodo_pago_id' });
 
