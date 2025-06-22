@@ -3,10 +3,7 @@
 // =================================================================
 
 import db from '../models/index.js';
-const Pedido = db.Pedido;
-const DetallePedido = db.DetallePedido;
-const Mesa = db.Mesa;
-const Producto = db.Producto;
+const { Pedido, DetallePedido, Mesa, Producto, sequelize } = db;
 
 // Crear un nuevo pedido con sus detalles en una transacción
 export const createPedido = async (req, res) => {
@@ -97,5 +94,57 @@ export const updatePedidoStatus = async (req, res) => {
         }
     } catch (error) {
         res.status(500).send({ message: error.message });
+    }
+};
+
+// Actualizar los items de un pedido (por ejemplo, añadir o quitar productos)
+export const updatePedidoItems = async (req, res) => {
+    const { id } = req.params; // pedido_id
+    const { items } = req.body; // Nuevo array de items
+
+    const t = await sequelize.transaction();
+    try {
+        // Borrar los detalles antiguos del pedido
+        await DetallePedido.destroy({ where: { pedido_id: id }, transaction: t });
+
+        // Crear los nuevos detalles
+        const nuevosDetalles = items.map(item => ({
+            pedido_id: id,
+            producto_id: item.producto_id,
+            cantidad: item.cantidad,
+            notas: item.notas
+        }));
+        await DetallePedido.bulkCreate(nuevosDetalles, { transaction: t });
+
+        await t.commit();
+        res.status(200).send({ message: "Pedido actualizado exitosamente." });
+    } catch (error) {
+        await t.rollback();
+        res.status(500).send({ message: "Error al actualizar el pedido: " + error.message });
+    }
+};
+
+// Cancelar/Eliminar un pedido
+export const deletePedido = async (req, res) => {
+    const { id } = req.params;
+    const t = await sequelize.transaction();
+    try {
+        const pedido = await Pedido.findByPk(id, { transaction: t });
+        if (!pedido) {
+            await t.rollback();
+            return res.status(404).send({ message: "Pedido no encontrado." });
+        }
+        
+        // Liberar la mesa asociada
+        await Mesa.update({ estado: 'disponible' }, { where: { mesa_id: pedido.mesa_id }, transaction: t });
+
+        // Eliminar el pedido (gracias a 'ON DELETE CASCADE', los detalles se borrarán también)
+        await Pedido.destroy({ where: { pedido_id: id }, transaction: t });
+
+        await t.commit();
+        res.status(200).send({ message: "Pedido cancelado y eliminado exitosamente." });
+    } catch (error) {
+        await t.rollback();
+        res.status(500).send({ message: "Error al cancelar el pedido: " + error.message });
     }
 };

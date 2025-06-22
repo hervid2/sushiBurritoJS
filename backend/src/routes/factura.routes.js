@@ -12,5 +12,7 @@ const router = Router();
 router.post('/', [verifyToken], facturaController.createInvoice);
 // Obtener una factura por su ID
 router.get('/:id', [verifyToken], facturaController.getInvoiceById);
+// Enviar una factura específica por correo
+router.post('/:id/send-email', [verifyToken], facturaController.sendInvoiceByEmail);
 
 export default router;

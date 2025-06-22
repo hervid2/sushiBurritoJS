@@ -22,5 +22,11 @@ router.get('/:id', [verifyToken], pedidoController.getPedidoById);
 // Actualizar el estado de un pedido (ej. de 'pendiente' a 'en_preparacion')
 router.put('/:id/estado', [verifyToken], pedidoController.updatePedidoStatus);
 
+// Ruta para editar los productos de un pedido (protegido)
+router.put('/:id', [verifyToken], pedidoController.updatePedidoItems); 
+
+// Ruta para cancelar/eliminar un pedido (protegido)
+router.delete('/:id', [verifyToken], pedidoController.deletePedido); 
+
 
 export default router;

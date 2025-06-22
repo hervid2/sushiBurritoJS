@@ -33,6 +33,36 @@ export const getAllCategories = async (req, res) => {
     }
 };
 
+// Obtener una categoría por ID
+export const getCategoryById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const categoria = await Categoria.findByPk(id);
+        if (categoria) {
+            res.status(200).send(categoria);
+        } else {
+            res.status(404).send({ message: `Categoría con id=${id} no encontrada.` });
+        }
+    } catch (error) {
+        res.status(500).send({ message: error.message });
+    }
+};
+
+// Actualizar una categoría
+export const updateCategory = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const [num] = await Categoria.update(req.body, { where: { categoria_id: id } });
+        if (num == 1) {
+            res.send({ message: "Categoría actualizada exitosamente." });
+        } else {
+            res.status(404).send({ message: `No se pudo actualizar la categoría con id=${id}.` });
+        }
+    } catch (error) {
+        res.status(500).send({ message: error.message });
+    }
+};
+
 // Eliminar una categoría
 export const deleteCategory = async (req, res) => {
     try {

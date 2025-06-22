@@ -12,6 +12,9 @@ export const createUser = async (req, res) => {
         const nuevoUsuario = await Usuario.create({ nombre, rol, correo, contraseña });
         res.status(201).send({ message: "Usuario creado exitosamente.", usuario: nuevoUsuario });
     } catch (error) {
+        if (error.name === 'SequelizeUniqueConstraintError') {
+             return res.status(409).send({ message: 'El correo electrónico ya está en uso.' });
+        }
         res.status(500).send({ message: error.message });
     }
 };
