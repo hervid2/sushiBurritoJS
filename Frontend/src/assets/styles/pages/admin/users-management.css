@@ -57,13 +57,16 @@
     font-weight: 700;
     text-transform: capitalize;
     color: var(--color-text-light);
+    display: inline-block; /* Asegura que el badge se muestre correctamente */
 }
 
+/* --- NOMBRES DE CLASE --- */
 .role-admin { background-color: var(--color-primary); }
-.role-waiter { background-color: var(--color-info); }
-.role-kitchen { background-color: var(--color-secondary); }
+.role-mesero { background-color: var(--color-info); }
+.role-cocinero { background-color: var(--color-secondary); }
 
-/* Estilos de paginación consistentes */
+
+/* Estilos de paginación*/
 .pagination-container {
     margin-top: 1.5rem;
     padding: 1rem 0;

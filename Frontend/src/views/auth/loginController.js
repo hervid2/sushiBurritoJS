@@ -2,29 +2,28 @@
 
 import { showAlert } from '../../helpers/alerts.js';
 import { navigateTo } from '../../router/router.js';
-import { validateEmail } from '../../helpers/auth.js'; 
+import { validateEmail } from '../../helpers/auth.js';
 
-export const loginController = (params) => {
-    console.log("Login Controller Initialized.", params);
+const API_URL = 'http://localhost:3000/api';
 
+export const loginController = () => {
     const loginForm = document.getElementById('login-form');
-    // Se asume que el ID del input en login.html es 'login-email'
-    const emailInput = document.getElementById('login-email'); 
+    const emailInput = document.getElementById('login-email');
     const passwordInput = document.getElementById('login-password');
 
-    const authenticateUser = (email, password) => {
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                // Se actualiza la lógica para usar emails
-                if (email === 'admin@sushi.com' && password === 'admin123') {
-                    resolve({ success: true, message: 'Inicio de sesión exitoso.', token: 'fake-admin-jwt', user: { email: 'admin@sushi.com', name: 'Administrador' }, role: 'admin' });
-                } else if (email === 'mesero@sushi.com' && password === 'mesero123') {
-                    resolve({ success: true, message: 'Inicio de sesión exitoso.', token: 'fake-waiter-jwt', user: { email: 'mesero@sushi.com', name: 'Mesero Uno' }, role: 'waiter' });
-                } else {
-                    reject(new Error('Credenciales inválidas.'));
-                }
-            }, 700);
-        });
+    const apiLogin = async (email, password) => {
+        try {
+            const response = await fetch(`${API_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ correo: email, contraseña: password })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || `Error ${response.status}`);
+            return data;
+        } catch (error) {
+            throw error;
+        }
     };
 
     const handleLoginSubmit = async (event) => {
@@ -32,24 +31,34 @@ export const loginController = (params) => {
         const email = emailInput.value;
         const password = passwordInput.value;
 
-        // Se añade la validación de formato de email
-        if (!validateEmail(email)) {
-            showAlert('Por favor, ingresa un correo electrónico válido.', 'warning');
-            return;
-        }
-
-        if (!password) {
-            showAlert('Por favor, ingresa tu contraseña.', 'warning');
+        if (!validateEmail(email) || !password) {
+            showAlert('Por favor, ingresa un correo y contraseña válidos.', 'warning');
             return;
         }
 
         try {
-            const result = await authenticateUser(email, password); // Se pasa el email
-            showAlert(result.message, 'success');
-            localStorage.setItem('userToken', result.token);
-            localStorage.setItem('userRole', result.role);
+            const result = await apiLogin(email, password);
+            
+            // Guardar tokens y rol en localStorage
+            localStorage.setItem('accessToken', result.accessToken);
+            localStorage.setItem('refreshToken', result.refreshToken);
+            localStorage.setItem('userRole', result.rol);
             localStorage.setItem('isAuthenticated', 'true');
-            navigateTo('/admin/dashboard');
+
+            showAlert('Inicio de sesión exitoso.', 'success');
+
+            const defaultRoutes = {
+                administrador: '/admin/dashboard',
+                mesero: '/waiter/orders',
+                cocinero: '/kitchen/orders/pending'
+            };
+            
+            navigateTo(defaultRoutes[result.rol] || '/');
+
+            // Se añade una pequeña espera y una recarga de página para asegurar que el estado
+            // de la autenticación se aplique correctamente en toda la aplicación.
+            setTimeout(() => window.location.reload(), 5000);
+
         } catch (error) {
             showAlert(error.message || 'Error al iniciar sesión.', 'error');
         }

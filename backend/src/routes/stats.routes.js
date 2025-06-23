@@ -13,4 +13,7 @@ const router = Router();
 // Endpoint para generar y enviar el reporte por correo
 router.post('/send-report', [verifyToken, isAdmin], statsController.sendStatisticsReport);
 
+// Endpoint para obtener el resumen del dashboard
+router.get('/dashboard-summary', [verifyToken, isAdmin], statsController.getDashboardSummary);
+
 export default router;

@@ -9,6 +9,40 @@ import { Op } from 'sequelize';
 
 const { Factura, Pedido, DetallePedido, Producto, Usuario, sequelize } = db;
 
+// --- Lógica para obtener el resumen del dashboard ---
+export const getDashboardSummary = async (req, res) => {
+    try {
+        // Obtenemos todas las estadísticas en paralelo para mayor eficiencia
+        const [pendingOrders, totalUsers, dailySales] = await Promise.all([
+            // 1. Contar pedidos pendientes
+            Pedido.count({ where: { estado: 'pendiente' } }),
+            
+            // 2. Contar todos los usuarios registrados
+            Usuario.count(),
+
+            // 3. Sumar las ventas del día de hoy
+            Factura.sum('total', {
+                where: {
+                    fecha_factura: {
+                        [Op.gte]: new Date(new Date().setHours(0, 0, 0, 0)),
+                        [Op.lt]: new Date(new Date().setHours(23, 59, 59, 999))
+                    }
+                }
+            })
+        ]);
+
+        res.status(200).send({
+            pendingOrdersCount: pendingOrders || 0,
+            registeredUsersCount: totalUsers || 0,
+            dailySalesAmount: parseFloat(dailySales || 0).toFixed(2)
+        });
+
+    } catch (error) {
+        console.error("Error al obtener el resumen del dashboard:", error);
+        res.status(500).send({ message: "Error interno al procesar las estadísticas." });
+    }
+};
+
 // --- Lógica para generar y enviar el reporte ---
 export const sendStatisticsReport = async (req, res) => {
     const { startDate, endDate } = req.body;

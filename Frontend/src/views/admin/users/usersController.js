@@ -1,8 +1,42 @@
-// src/views/admin/users/usersController.js (COMPLETO Y ACTUALIZADO)
+// src/views/admin/users/usersController.js 
 
 import { showAlert } from '../../../helpers/alerts.js';
 import { showConfirmModal } from '../../../helpers/modalHelper.js';
 import { validateEmail, validatePassword } from '../../../helpers/auth.js';
+
+const API_URL = 'http://localhost:3000/api';
+
+// --- API Service Helper ---
+// Un pequeño servicio para manejar las peticiones fetch y la autenticación
+const apiService = {
+    getAuthHeaders: () => {
+        const token = localStorage.getItem('accessToken');
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        };
+    },
+    get: async (endpoint) => {
+        const response = await fetch(`${API_URL}/${endpoint}`, { headers: apiService.getAuthHeaders() });
+        if (!response.ok) throw new Error((await response.json()).message || 'Error en la petición GET');
+        return response.json();
+    },
+    post: async (endpoint, data) => {
+        const response = await fetch(`${API_URL}/${endpoint}`, { method: 'POST', headers: apiService.getAuthHeaders(), body: JSON.stringify(data) });
+        if (!response.ok) throw new Error((await response.json()).message || 'Error en la petición POST');
+        return response.json();
+    },
+    put: async (endpoint, data) => {
+        const response = await fetch(`${API_URL}/${endpoint}`, { method: 'PUT', headers: apiService.getAuthHeaders(), body: JSON.stringify(data) });
+        if (!response.ok) throw new Error((await response.json()).message || 'Error en la petición PUT');
+        return response.json();
+    },
+    delete: async (endpoint) => {
+        const response = await fetch(`${API_URL}/${endpoint}`, { method: 'DELETE', headers: apiService.getAuthHeaders() });
+        if (!response.ok) throw new Error((await response.json()).message || 'Error en la petición DELETE');
+        return response.json();
+    }
+};
 
 export const usersController = () => {
     console.log("Users Management Controller Initialized.");
@@ -11,173 +45,131 @@ export const usersController = () => {
     const addUserBtn = document.getElementById('add-user-btn');
     const userFormSection = document.getElementById('user-form-section');
     const userForm = document.getElementById('user-form');
-    const userIdInput = document.getElementById('user-id');
-    const nameInput = document.getElementById('name');
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const roleSelect = document.getElementById('role');
-    const cancelUserFormBtn = document.getElementById('cancel-user-form-btn');
-    const usersTableBody = document.querySelector('#users-table tbody');
-    const paginationContainer = document.getElementById('users-pagination');
+    const usersTable = document.getElementById('users-table');
     
-    // --- Estado ---
-    let FAKE_USERS_DB = Array.from({ length: 20 }, (_, i) => ({ id: 1 + i, name: `Usuario Ejemplo ${i+1}`, email: `usuario${i+1}@sushi.com`, role: ['admin', 'waiter', 'kitchen'][i%3] }));
-    let currentPage = 1;
-    const itemsPerPage = 8;
-
-    // --- Funciones de Utilidad ---
-    const showForm = (isEditing = false) => {
+    // --- Lógica de la Interfaz ---
+    const showForm = (isEditing = false, user = {}) => {
+        userFormSection.style.display = 'block';
+        // CSeleccionar elementos por ID desde el documento
         const titleElement = document.getElementById('form-title');
         const saveButton = document.getElementById('save-user-btn');
+        const passwordInput = document.getElementById('password');
+        const roleSelect = document.getElementById('role');
         const passwordGroup = passwordInput.closest('.form-group');
-        userFormSection.style.display = 'block';
-        
-        if (titleElement) titleElement.textContent = isEditing ? 'Editar Información del Usuario' : 'Añadir Nuevo Usuario';
+        // Actualizar título y botón
+        if (titleElement) titleElement.textContent = isEditing ? 'Editar Usuario' : 'Añadir Nuevo Usuario';
         if (saveButton) saveButton.textContent = isEditing ? 'Guardar Cambios' : 'Crear Usuario';
 
         if (isEditing) {
+            // Ocultar el contenedor del campo de contraseña
             if (passwordGroup) passwordGroup.style.display = 'none';
             roleSelect.disabled = true;
         } else {
             userForm.reset();
-            userIdInput.value = '';
+            document.getElementById('user-id').value = '';
             if (passwordGroup) passwordGroup.style.display = 'block';
             roleSelect.disabled = false;
         }
+        // Poblar el formulario (se hace después de la lógica de mostrar/ocultar)
+        document.getElementById('user-id').value = user.usuario_id || '';
+        document.getElementById('name').value = user.nombre || '';
+        document.getElementById('email').value = user.correo || '';
+        document.getElementById('role').value = user.rol || 'mesero';
     };
-    
-    const hideForm = () => {
-        userFormSection.style.display = 'none';
-        userForm.reset();
-        userIdInput.value = '';
-    };
-    
-    // --- API Simulada ---
-    const fetchUsers = async () => new Promise(r => setTimeout(() => r([...FAKE_USERS_DB]), 300));
-    const fetchUserById = async (id) => new Promise(r => setTimeout(() => r(FAKE_USERS_DB.find(u => u.id == id)), 200));
-    const updateUser = async (id, userData) => new Promise(r => setTimeout(() => {
-        const index = FAKE_USERS_DB.findIndex(u => u.id == id);
-        if (index !== -1) { FAKE_USERS_DB[index] = { ...FAKE_USERS_DB[index], ...userData }; }
-        r({ success: true });
-    }, 400));
-    const createUser = async (userData) => new Promise(r => setTimeout(() => {
-        const newId = FAKE_USERS_DB.length > 0 ? Math.max(...FAKE_USERS_DB.map(u => u.id)) + 1 : 1;
-        FAKE_USERS_DB.push({ id: newId, ...userData });
-        r({ success: true });
-    }, 400));
-    const deleteUserApi = async (id) => new Promise(r => setTimeout(() => {
-        FAKE_USERS_DB = FAKE_USERS_DB.filter(u => u.id != id);
-        r({ success: true });
-    }, 300));
+    const hideForm = () => { userFormSection.style.display = 'none'; };
 
-    // --- Lógica de borrado y edición ---
-    const handleDeleteUser = async (userId, userName) => {
+    // --- Lógica de Negocio y API ---
+    const loadUsers = async () => {
         try {
-            await showConfirmModal('Confirmar Eliminación', `¿Está seguro de que desea eliminar a <strong>${userName}</strong>?`);
-            await deleteUserApi(userId);
-            showAlert('Usuario eliminado.', 'success');
+            const users = await apiService.get('usuarios');
+            renderTable(users);
+        } catch (error) {
+            showAlert(error.message, 'error');
+        }
+    };
+
+    const handleSaveUser = async (event) => {
+        event.preventDefault();
+        const id = userForm.querySelector('#user-id').value;
+        const userData = {
+            nombre: userForm.querySelector('#name').value,
+            correo: userForm.querySelector('#email').value,
+            rol: userForm.querySelector('#role').value,
+        };
+        
+        try {
+            if (id) { // --- MODO EDICIÓN ---
+                await apiService.put(`usuarios/${id}`, userData);
+                showAlert('Usuario actualizado exitosamente.', 'success');
+            } else { // --- MODO CREACIÓN ---
+                const password = userForm.querySelector('#password').value;
+                if (!validatePassword(password)) {
+                    showAlert('La contraseña no cumple los requisitos de seguridad.', 'warning');
+                    return;
+                }
+                userData.contraseña = password;
+                await apiService.post('usuarios', userData);
+                showAlert('Usuario creado exitosamente.', 'success');
+            }
+            hideForm();
             loadUsers();
-        } catch { console.log('Eliminación cancelada.'); }
+        } catch (error) {
+            showAlert(error.message, 'error');
+        }
     };
 
     const handleEditClick = async (userId) => {
-        const user = await fetchUserById(userId);
-        if (user) {
-            userIdInput.value = user.id;
-            nameInput.value = user.name;
-            emailInput.value = user.email;
-            roleSelect.value = user.role;
-            showForm(true);
-        } else { showAlert('Usuario no encontrado.', 'error'); }
-    };
-
-    // --- Lógica de Guardar ---
-    const handleSaveUser = async (event) => {
-        event.preventDefault();
-        const id = userIdInput.value;
-        const userData = { name: nameInput.value, email: emailInput.value };
-
-        if (!validateEmail(userData.email)) {
-            showAlert('Por favor, ingrese un correo electrónico válido.', 'warning');
-            return;
-        }
-
-        if (id) {
-            try {
-                await showConfirmModal('Confirmar Cambios', '¿Guardar los cambios para este usuario?');
-                await updateUser(id, userData);
-                showAlert('Usuario actualizado.', 'success');
-                hideForm();
-                loadUsers();
-            } catch { console.log("Edición cancelada."); }
-        } else {
-            if (!validatePassword(passwordInput.value)) {
-                showAlert('La contraseña no cumple los requisitos de seguridad.', 'warning');
-                return;
-            }
-            userData.password = passwordInput.value;
-            userData.role = roleSelect.value;
-            try {
-                await showConfirmModal('Confirmar Creación', `¿Crear al nuevo usuario <strong>${userData.name}</strong>?`);
-                await createUser(userData);
-                showAlert('Usuario creado.', 'success');
-                hideForm();
-                loadUsers();
-            } catch { console.log("Creación cancelada."); }
-        }
-    };
-    
-    // --- Renderizado y Paginación ---
-    const renderPage = () => {
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const pageUsers = FAKE_USERS_DB.slice(startIndex, startIndex + itemsPerPage);
-        
-        usersTableBody.innerHTML = pageUsers.map(user => `
-            <tr>
-                <td>${user.id}</td><td>${user.name}</td><td>${user.email}</td>
-                <td><span class="role-badge role-${user.role}">${user.role}</span></td>
-                <td class="table-actions">
-                    <button class="btn btn--info btn--small edit-btn" data-id="${user.id}">Editar</button>
-                    <button class="btn btn--danger btn--small delete-btn" data-id="${user.id}" data-name="${user.name}">Eliminar</button>
-                </td>
-            </tr>`).join('');
-
-        renderPagination();
-        usersTableBody.querySelectorAll('.delete-btn').forEach(btn => btn.onclick = (e) => handleDeleteUser(e.currentTarget.dataset.id, e.currentTarget.dataset.name));
-        usersTableBody.querySelectorAll('.edit-btn').forEach(btn => btn.onclick = (e) => handleEditClick(e.currentTarget.dataset.id));
-    };
-
-    const renderPagination = () => {
-        const totalPages = Math.ceil(FAKE_USERS_DB.length / itemsPerPage);
-        paginationContainer.innerHTML = '';
-        if (totalPages <= 1) return;
-        
-        let buttonsHTML = `<ul>`;
-        for (let i = 1; i <= totalPages; i++) {
-            buttonsHTML += `<li><button class="pagination-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button></li>`;
-        }
-        buttonsHTML += `</ul>`;
-        paginationContainer.innerHTML = buttonsHTML;
-
-        paginationContainer.querySelectorAll('.pagination-btn').forEach(btn => {
-            btn.onclick = () => { currentPage = parseInt(btn.dataset.page); renderPage(); };
-        });
-    };
-
-    const loadUsers = async () => {
-        usersTableBody.innerHTML = '<tr><td colspan="5" class="loading-message">Cargando...</td></tr>';
         try {
-            const users = await fetchUsers();
-            FAKE_USERS_DB = users;
-            currentPage = 1;
-            renderPage();
-        } catch (error) { usersTableBody.innerHTML = '<tr><td colspan="5" class="error-message">Error al cargar.</td></tr>'; }
+            const user = await apiService.get(`usuarios/${userId}`);
+            showForm(true, user);
+        } catch (error) {
+            showAlert(error.message, 'error');
+        }
+    };
+
+    const handleDeleteUser = async (userId, userName) => {
+        try {
+            await showConfirmModal('Confirmar Eliminación', `¿Está seguro de que desea eliminar a <strong>${userName}</strong>?`);
+            await apiService.delete(`usuarios/${userId}`);
+            showAlert('Usuario eliminado exitosamente.', 'success');
+            loadUsers();
+        } catch (error) {
+            if(error) showAlert(error.message, 'error');
+            else console.log("Eliminación cancelada.");
+        }
+    };
+
+    // --- Renderizado ---
+    const renderTable = (users) => {
+        usersTable.innerHTML = `
+            <thead>
+                <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+                ${users.map(user => `
+                    <tr>
+                        <td>${user.usuario_id}</td>
+                        <td>${user.nombre}</td>
+                        <td>${user.correo}</td>
+                        <td><span class="role-badge role-${user.rol.replace('administrador', 'admin')}">${user.rol}</span></td>
+                        <td class="table-actions">
+                            <button class="btn btn--info btn--small edit-btn" data-id="${user.usuario_id}">Editar</button>
+                            <button class="btn btn--danger btn--small delete-btn" data-id="${user.usuario_id}" data-name="${user.nombre}">Eliminar</button>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        `;
+        // Re-asignar listeners a los nuevos botones
+        usersTable.querySelectorAll('.edit-btn').forEach(btn => btn.onclick = () => handleEditClick(btn.dataset.id));
+        usersTable.querySelectorAll('.delete-btn').forEach(btn => btn.onclick = () => handleDeleteUser(btn.dataset.id, btn.dataset.name));
     };
 
     // --- Inicialización ---
-    addUserBtn.addEventListener('click', () => showForm(false));
-    cancelUserFormBtn.addEventListener('click', hideForm);
+    document.getElementById('add-user-btn').addEventListener('click', () => showForm(false));
+    document.getElementById('cancel-user-form-btn').addEventListener('click', hideForm);
     userForm.addEventListener('submit', handleSaveUser);
+    
     loadUsers();
 };
 

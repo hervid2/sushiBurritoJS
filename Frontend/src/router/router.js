@@ -24,18 +24,18 @@ export const routes = {
     "forgot-password": { template: "auth/forgot-password.html", controller: forgotPasswordController, title: "Recuperar Contraseña", public: true },
     "reset-password": { template: "auth/reset-password.html", controller: resetPasswordController, title: "Restablecer Contraseña", public: true },
     // Admin
-    "admin/dashboard": { template: "admin/dashboard/dashboard.html", controller: dashboardController, title: "Panel administrativo", roles: ['admin'] },
-    "admin/users": { template: "admin/users/usersManagement.html", controller: usersController, title: "Gestión de Usuarios", roles: ['admin'] },
-    "admin/menu": { template: "admin/menu/menuManagement.html", controller: menuController, title: "Gestión de Menú y mesas", roles: ['admin'] },
-    "admin/stats": { template: "admin/stats/statsOverview.html", controller: statsController, title: "Estadísticas", roles: ['admin'] },
+    "admin/dashboard": { template: "admin/dashboard/dashboard.html", controller: dashboardController, title: "Panel administrativo", roles: ['administrador'] },
+    "admin/users": { template: "admin/users/usersManagement.html", controller: usersController, title: "Gestión de Usuarios", roles: ['administrador'] },
+    "admin/menu": { template: "admin/menu/menuManagement.html", controller: menuController, title: "Gestión de Menú y mesas", roles: ['administrador'] },
+    "admin/stats": { template: "admin/stats/statsOverview.html", controller: statsController, title: "Estadísticas", roles: ['administrador'] },
     // Kitchen - Rutas específicas para cada estado
-    "kitchen/orders/pending": { template: "kitchen/kitchenOrders.html", controller: kitchenOrdersController, title: "Pedidos Pendientes", roles: ['kitchen'], status: 'pending' },
-    "kitchen/orders/preparing": { template: "kitchen/kitchenOrders.html", controller: kitchenOrdersController, title: "Pedidos en Preparación", roles: ['kitchen'], status: 'preparing' },
-    "kitchen/orders/ready": { template: "kitchen/kitchenOrders.html", controller: kitchenOrdersController, title: "Pedidos Listos", roles: ['kitchen'], status: 'ready' },
+    "kitchen/orders/pending": { template: "kitchen/kitchenOrders.html", controller: kitchenOrdersController, title: "Pedidos Pendientes", roles: ['cocinero'], status: 'pending' },
+    "kitchen/orders/preparing": { template: "kitchen/kitchenOrders.html", controller: kitchenOrdersController, title: "Pedidos en Preparación", roles: ['cocinero'], status: 'preparing' },
+    "kitchen/orders/ready": { template: "kitchen/kitchenOrders.html", controller: kitchenOrdersController, title: "Pedidos Listos", roles: ['cocinero'], status: 'ready' },
     // Waiter
-    "waiter/orders": { template: "waiter/waiterOrdersManagement.html", controller: waiterOrdersController, title: "Gestión de Pedidos", roles: ['waiter'] },
-    "waiter/orders-status": { template: "waiter/waiterOrdersStatus.html", controller: waiterOrdersStatusController, title: "Estado de Pedidos", roles: ['waiter'] },
-    "waiter/invoice": { template: "waiter/waiterInvoiceGenerator.html", controller: waiterInvoiceGeneratorController, title: "Generación de Factura", roles: ['waiter'] },
+    "waiter/orders": { template: "waiter/waiterOrdersManagement.html", controller: waiterOrdersController, title: "Gestión de Pedidos", roles: ['mesero'] },
+    "waiter/orders-status": { template: "waiter/waiterOrdersStatus.html", controller: waiterOrdersStatusController, title: "Estado de Pedidos", roles: ['mesero'] },
+    "waiter/invoice": { template: "waiter/waiterInvoiceGenerator.html", controller: waiterInvoiceGeneratorController, title: "Generación de Factura", roles: ['mesero'] },
     // 404
     "404": { template: "shared/404.html", title: "Página No Encontrada", public: true }
 };
@@ -90,10 +90,6 @@ export const loadContent = async () => {
     // --- Autenticación y Rol ---
     let isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
     let userRole = localStorage.getItem('userRole');
-
-    // Bloque de pruebas (comentar para producción)
-    // isAuthenticated = true;
-    // userRole = 'admin'; // Cambiar a 'waiter' o 'kitchen' según sea necesario para pruebas
     
     // --- LÓGICA DE REDIRECCIÓN Y SEGURIDAD ---
     if (path === "kitchen/orders") {
@@ -150,7 +146,6 @@ export const loadContent = async () => {
             const queryString = window.location.hash.split('?')[1] || '';
             const urlParams = new URLSearchParams(queryString);
             const params = Object.fromEntries(urlParams.entries());
-
             params.routeInfo = route; 
             
             route.controller(params); // Ahora el controlador recibe toda la información que necesita.

@@ -9,18 +9,18 @@ export const navigationController = (props) => {
 
     // Define los enlaces para cada rol
     const navLinks = {
-        admin: `
+        administrador: `
             <a href="#/admin/dashboard" class="nav__link" data-path="admin/dashboard">Dashboard</a>
             <a href="#/admin/users" class="nav__link" data-path="admin/users">Gestión de Usuarios</a>
             <a href="#/admin/menu" class="nav__link" data-path="admin/menu">Menú y mesas</a>
             <a href="#/admin/stats" class="nav__link" data-path="admin/stats">Estadísticas ventas</a>
         `,
-        waiter: `
+        mesero: `
             <a href="#/waiter/orders" class="nav__link" data-path="waiter/orders">Gestión de Pedidos</a>
             <a href="#/waiter/orders-status" class="nav__link" data-path="waiter/orders-status">Estado Pedidos</a>
             <a href="#/waiter/invoice" class="nav__link" data-path="waiter/invoice">Facturar pedido</a>
         `,
-        kitchen: `
+        cocinero: `
             <a href="#/kitchen/orders/pending" class="nav__link" data-path="kitchen/orders/pending">Pendientes</a>
             <a href="#/kitchen/orders/preparing" class="nav__link" data-path="kitchen/orders/preparing">En Preparación</a>
             <a href="#/kitchen/orders/ready" class="nav__link" data-path="kitchen/orders/ready">Listos</a>
