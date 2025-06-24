@@ -3,39 +3,56 @@
 // ==================================================
 
 import db from '../models/index.js';
-const Usuario = db.Usuario;
 
-// Crear un nuevo usuario
+// Crear un nuevo usuario 
 export const createUser = async (req, res) => {
     try {
         const { nombre, rol, correo, contraseña } = req.body;
-        const nuevoUsuario = await Usuario.create({ nombre, rol, correo, contraseña });
-        res.status(201).send({ message: "Usuario creado exitosamente.", usuario: nuevoUsuario });
+        const rolEncontrado = await db.Rol.findOne({ where: { nombre_rol: rol } });
+        if (!rolEncontrado) return res.status(400).send({ message: "El rol especificado no existe." });
+
+        const nuevoUsuario = await db.Usuario.create({ nombre, correo, contraseña, rol_id: rolEncontrado.rol_id });
+        res.status(201).send({ message: "Usuario creado exitosamente." });
     } catch (error) {
-        if (error.name === 'SequelizeUniqueConstraintError') {
-             return res.status(409).send({ message: 'El correo electrónico ya está en uso.' });
-        }
         res.status(500).send({ message: error.message });
     }
 };
 
-// Obtener todos los usuarios
+// Obtener todos los usuarios (incluyendo el nombre del rol)
 export const getAllUsers = async (req, res) => {
     try {
-        const usuarios = await Usuario.findAll({ attributes: { exclude: ['contraseña'] } });
-        res.status(200).send(usuarios);
+        const usuarios = await db.Usuario.findAll({
+            attributes: { exclude: ['contraseña', 'rol_id'] },
+            include: [{ model: db.Rol, attributes: ['nombre_rol'] }]
+        });
+        const respuesta = usuarios.map(u => ({
+            usuario_id: u.usuario_id,
+            nombre: u.nombre,
+            correo: u.correo,
+            rol: u.Rol.nombre_rol
+        }));
+        res.status(200).send(respuesta);
     } catch (error) {
         res.status(500).send({ message: error.message });
     }
 };
 
-// Obtener un usuario por ID
+// Obtener un usuario por su ID
 export const getUserById = async (req, res) => {
     try {
         const { id } = req.params;
-        const usuario = await Usuario.findByPk(id, { attributes: { exclude: ['contraseña'] } });
+        const usuario = await db.Usuario.findByPk(id, {
+            attributes: { exclude: ['contraseña', 'rol_id'] },
+            include: [{ model: Rol, attributes: ['nombre_rol'] }]
+        });
         if (usuario) {
-            res.status(200).send(usuario);
+            const respuesta = {
+                usuario_id: usuario.usuario_id,
+                nombre: usuario.nombre,
+                correo: usuario.correo,
+                rol: usuario.Rol.nombre_rol
+            };
+            res.status(200).send(respuesta);
         } else {
             res.status(404).send({ message: `Usuario con id=${id} no encontrado.` });
         }
@@ -44,29 +61,33 @@ export const getUserById = async (req, res) => {
     }
 };
 
-// Actualizar un usuario por ID
+// Actualizar un usuario
 export const updateUser = async (req, res) => {
     try {
         const { id } = req.params;
-        // La contraseña no se actualiza desde este endpoint por seguridad
-        const { nombre, correo, rol } = req.body;
-        const [num] = await Usuario.update({ nombre, correo, rol }, { where: { usuario_id: id } });
+        const { nombre, correo } = req.body; 
+
+        const [num] = await db.Usuario.update({ nombre, correo }, {
+            where: { usuario_id: id }
+        });
 
         if (num == 1) {
             res.send({ message: "Usuario actualizado exitosamente." });
         } else {
-            res.status(404).send({ message: `No se pudo actualizar el usuario con id=${id}.` });
+            res.status(404).send({ message: `No se pudo actualizar el usuario con id=${id}. Quizás no fue encontrado o no hubo cambios.` });
         }
     } catch (error) {
         res.status(500).send({ message: error.message });
     }
 };
 
-// Eliminar un usuario por ID
+// Eliminar un usuario
 export const deleteUser = async (req, res) => {
     try {
         const { id } = req.params;
-        const num = await Usuario.destroy({ where: { usuario_id: id } });
+        const num = await db.Usuario.destroy({
+            where: { usuario_id: id }
+        });
         if (num == 1) {
             res.send({ message: "Usuario eliminado exitosamente." });
         } else {

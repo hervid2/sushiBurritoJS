@@ -2,7 +2,7 @@
 
 // Importaciones de Controladores de Vistas
 import { loginController } from "../views/auth/loginController.js";
-import { forgotPasswordController } from "../views/auth/forgotPasswordController.js"; 
+import { forgotPasswordController } from "../views/auth/forgotPasswordController.js";
 import { resetPasswordController } from "../views/auth/resetPasswordController.js";
 import { dashboardController } from "../views/admin/dashboard/dashboardController.js";
 import { usersController } from "../views/admin/users/usersController.js";
@@ -50,13 +50,15 @@ const updateSharedUI = (isAuthenticated, userRole, route) => {
     const headerContainer = document.getElementById('header-container');
     const navContainer = document.getElementById('navigation-container');
     const footerContainer = document.getElementById('footer-container');
-    
-    const displayStyle = isAuthenticated ? 'block' : 'none';
-    headerContainer.style.display = displayStyle;
-    navContainer.style.display = displayStyle;
+
+    const isPublicView = route.public;
+
+    // Ocultar header y nav en vistas públicas (login, etc.)
+    headerContainer.style.display = !isPublicView ? 'block' : 'none';
+    navContainer.style.display = !isPublicView ? 'block' : 'none';
     footerContainer.style.display = 'block';
 
-    if (isAuthenticated) {
+    if (!isPublicView && isAuthenticated) {
         const appTitleElement = document.getElementById('app-title');
         if (appTitleElement) {
             appTitleElement.textContent = route.title || 'Sushi Burrito';
@@ -65,16 +67,17 @@ const updateSharedUI = (isAuthenticated, userRole, route) => {
         const logoutButton = document.getElementById('logout-button');
         if (logoutButton) {
             logoutButton.style.display = 'inline-block';
+            // Clonar el botón para evitar acumular listeners
             const newLogoutButton = logoutButton.cloneNode(true);
             logoutButton.parentNode.replaceChild(newLogoutButton, logoutButton);
+
             newLogoutButton.addEventListener('click', () => {
                 showAlert('Has cerrado sesión.', 'success');
                 localStorage.clear();
-                window.location.hash = '/login';
-                window.location.reload();
+                navigateTo('/login'); 
             });
         }
-        
+
         navigationController({ role: userRole });
     }
 };
@@ -90,7 +93,7 @@ export const loadContent = async () => {
     // --- Autenticación y Rol ---
     let isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
     let userRole = localStorage.getItem('userRole');
-    
+
     // --- LÓGICA DE REDIRECCIÓN Y SEGURIDAD ---
     if (path === "kitchen/orders") {
         navigateTo('kitchen/orders/pending');
@@ -100,24 +103,24 @@ export const loadContent = async () => {
         navigateTo(isAuthenticated ? 'admin/dashboard' : 'login');
         return;
     }
-    
+
     const route = routes[path];
-    
+
     if (!route) {
         navigateTo('404');
         return;
     }
-    
+
     if (route.public && isAuthenticated) {
         navigateTo('admin/dashboard');
         return;
     }
-    
+
     if (!route.public && !isAuthenticated) {
         navigateTo('login');
         return;
     }
-    
+
     if (route.roles && !route.roles.includes(userRole)) {
         showAlert('No tienes permiso para acceder a esta página.', 'error');
         const defaultRoutes = {
@@ -141,14 +144,14 @@ export const loadContent = async () => {
         document.title = route.title;
 
         updateSharedUI(isAuthenticated, userRole, route);
-        
+
         if (route.controller) {
             const queryString = window.location.hash.split('?')[1] || '';
             const urlParams = new URLSearchParams(queryString);
             const params = Object.fromEntries(urlParams.entries());
-            params.routeInfo = route; 
-            
-            route.controller(params); // Ahora el controlador recibe toda la información que necesita.
+            params.routeInfo = route;
+
+            route.controller(params); 
         }
     } catch (error) {
         console.error("Error loading content:", error);
@@ -165,7 +168,7 @@ const initializeApp = async () => {
         headerContainer.innerHTML = await (await fetch('/src/views/shared/header.html')).text();
         navContainer.innerHTML = await (await fetch('/src/views/shared/navigation.html')).text();
         footerContainer.innerHTML = await (await fetch('/src/views/shared/footer.html')).text();
-        
+
         window.addEventListener('hashchange', loadContent);
         window.addEventListener('load', loadContent);
     } catch (error) {

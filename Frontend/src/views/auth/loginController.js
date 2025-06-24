@@ -55,10 +55,6 @@ export const loginController = () => {
             
             navigateTo(defaultRoutes[result.rol] || '/');
 
-            // Se añade una pequeña espera y una recarga de página para asegurar que el estado
-            // de la autenticación se aplique correctamente en toda la aplicación.
-            setTimeout(() => window.location.reload(), 5000);
-
         } catch (error) {
             showAlert(error.message || 'Error al iniciar sesión.', 'error');
         }

@@ -1,56 +1,61 @@
 <div class="stats-overview-page">
-    <h2 class="stats-overview__title">Estadísticas Generales</h2>
+    <h2 class="stats-overview__title">Estadísticas de Ventas</h2>
     
     <div class="stats-filters">
         <div class="form-group">
-            <label for="time-range" class="form-label">Seleccione un Rango de Tiempo:</label>
-            <select id="time-range" class="form-control">
-                <option value="">-- Seleccionar --</option>
-                <option value="today">Hoy</option>
-                <option value="week">Esta Semana</option>
-                <option value="month">Este Mes</option>
-                <option value="year">Este Año</option>
-                <option value="custom">Personalizado</option>
-            </select>
+            <label for="start-date" class="form-label">Desde:</label>
+            <input type="date" id="start-date" class="form-control">
         </div>
-        
-        <div id="custom-range-container" class="custom-range" style="display: none;">
-             <div class="form-group">
-                <label for="start-date" class="form-label">Desde:</label>
-                <input type="date" id="start-date" class="form-control">
-            </div>
-            <div class="form-group">
-                <label for="end-date" class="form-label">Hasta:</label>
-                <input type="date" id="end-date" class="form-control">
-            </div>
+        <div class="form-group">
+            <label for="end-date" class="form-label">Hasta:</label>
+            <input type="date" id="end-date" class="form-control">
         </div>
         <button id="generate-stats-btn" class="btn btn--primary">Generar Estadísticas</button>
     </div>
     
     <section id="stats-results-container" class="stats-results" style="display: none;">
+        
         <div class="stats-grid">
             <div class="stat-card stat-card--primary">
-                <div class="stat-card__value" id="total-orders"></div>
+                <div class="stat-card__value" id="total-orders">...</div>
                 <div class="stat-card__label">Pedidos Totales</div>
             </div>
             <div class="stat-card stat-card--secondary">
-                <div class="stat-card__value" id="total-revenue"></div>
+                <div class="stat-card__value" id="total-revenue">...</div>
                 <div class="stat-card__label">Ingresos Totales</div>
             </div>
         </div>
 
+        <div class="payment-methods-section">
+            <h3>Desglose por Método de Pago</h3>
+            <div class="stats-grid" id="payment-methods-stats">
+                <p>Cargando datos de pago...</p>
+            </div>
+        </div>
+
         <div class="ranking-section">
-            <h3>Ranking de Productos</h3>
+            <h3>Ranking de productos</h3>
             <div class="table-container">
                 <table class="table" id="product-ranking-table">
-                    </table>
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad Vendida</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="2">Cargando ranking...</td></tr>
+                    </tbody>
+                </table>
             </div>
-            <div class="pagination-container" id="stats-pagination"></div>
+            
             <div class="stats-actions">
                 <button class="btn btn--primary" id="send-pdf-btn">
                     <i class="fas fa-file-pdf"></i> Enviar Reporte por Correo
                 </button>
             </div>
+
         </div>
+
     </section>
 </div>

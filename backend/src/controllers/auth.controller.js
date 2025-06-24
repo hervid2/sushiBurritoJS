@@ -7,40 +7,31 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer'; 
 
-const Usuario = db.Usuario;
 
 // --- LOGIN  ---
 export const login = async (req, res) => {
     try {
         const { correo, contraseña } = req.body;
-        const usuario = await Usuario.findOne({ where: { correo } });
-        if (!usuario) {
-            return res.status(404).send({ message: "Usuario no encontrado." });
-        }
+        const usuario = await db.Usuario.findOne({
+            where: { correo: correo },
+            include: [{ model: db.Rol, attributes: ['nombre_rol'] }]
+        });
+
+        if (!usuario) return res.status(404).send({ message: "Usuario no encontrado." });
 
         const passwordIsValid = bcrypt.compareSync(contraseña, usuario.contraseña);
-        if (!passwordIsValid) {
-            return res.status(401).send({ message: "Contraseña inválida." });
-        }
+        if (!passwordIsValid) return res.status(401).send({ message: "Contraseña inválida." });
 
-        // Token de acceso de corta duración
-        const accessToken = jwt.sign({ id: usuario.usuario_id }, process.env.ACCESS_TOKEN_SECRET, {
-            expiresIn: process.env.TOKEN_EXPIRATION || '15m' 
-        });
-
-        // Token de refresco de larga duración
-        const refreshToken = jwt.sign({ id: usuario.usuario_id }, process.env.REFRESH_TOKEN_SECRET, {
-            expiresIn: process.env.REFRESH_EXPIRATION || '7d'
-        });
+        const accessToken = jwt.sign({ id: usuario.usuario_id }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+        const refreshToken = jwt.sign({ id: usuario.usuario_id }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '7d' });
 
         res.status(200).send({
             id: usuario.usuario_id,
             nombre: usuario.nombre,
-            rol: usuario.rol,
-            accessToken: accessToken,
-            refreshToken: refreshToken 
+            rol: usuario.Rol.nombre_rol, 
+            accessToken,
+            refreshToken
         });
-
     } catch (error) {
         res.status(500).send({ message: error.message });
     }
@@ -76,7 +67,7 @@ export const forgotPassword = async (req, res) => {
     const { correo } = req.body;
 
     try {
-        const usuario = await Usuario.findOne({ where: { correo } });
+        const usuario = await db.Usuario.findOne({ where: { correo } });
         if (!usuario) {
             // Enviamos una respuesta genérica para no revelar si un correo existe o no
             return res.status(200).send({ message: "Si el correo está registrado, recibirás un enlace para restablecer tu contraseña." });
@@ -89,14 +80,7 @@ export const forgotPassword = async (req, res) => {
         // Apunta a la vista del frontend, pasando el token como parámetro
         const resetLink = `http://localhost:5173/#/reset-password?token=${resetToken}`;
 
-        // *** console.log para depuración ***
-        // console.log("----------------------------------------------------");
-        // console.log("ENLACE DE RESTABLECIMIENTO GENERADO (COPIAR TOKEN):");
-        // console.log(resetLink);
-        // console.log("----------------------------------------------------");
-        // *** fin la depuración ***
-
-        
+    
        await sendPasswordResetEmail(usuario.correo, resetLink); 
        
         res.status(200).send({ message: "Si el correo está registrado, recibirás un enlace para restablecer tu contraseña." });

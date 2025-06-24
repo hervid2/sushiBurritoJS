@@ -1,175 +1,153 @@
-// src/views/admin/users/usersController.js 
+// =================================================================
+// ARCHIVO: src/views/admin/users/usersController.js
+// DESCRIPCIÓN: Controlador final que usa el servicio API centralizado.
+// =================================================================
 
 import { showAlert } from '../../../helpers/alerts.js';
 import { showConfirmModal } from '../../../helpers/modalHelper.js';
-import { validateEmail, validatePassword } from '../../../helpers/auth.js';
-
-const API_URL = 'http://localhost:3000/api';
-
-// --- API Service Helper ---
-// Un pequeño servicio para manejar las peticiones fetch y la autenticación
-const apiService = {
-    getAuthHeaders: () => {
-        const token = localStorage.getItem('accessToken');
-        return {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        };
-    },
-    get: async (endpoint) => {
-        const response = await fetch(`${API_URL}/${endpoint}`, { headers: apiService.getAuthHeaders() });
-        if (!response.ok) throw new Error((await response.json()).message || 'Error en la petición GET');
-        return response.json();
-    },
-    post: async (endpoint, data) => {
-        const response = await fetch(`${API_URL}/${endpoint}`, { method: 'POST', headers: apiService.getAuthHeaders(), body: JSON.stringify(data) });
-        if (!response.ok) throw new Error((await response.json()).message || 'Error en la petición POST');
-        return response.json();
-    },
-    put: async (endpoint, data) => {
-        const response = await fetch(`${API_URL}/${endpoint}`, { method: 'PUT', headers: apiService.getAuthHeaders(), body: JSON.stringify(data) });
-        if (!response.ok) throw new Error((await response.json()).message || 'Error en la petición PUT');
-        return response.json();
-    },
-    delete: async (endpoint) => {
-        const response = await fetch(`${API_URL}/${endpoint}`, { method: 'DELETE', headers: apiService.getAuthHeaders() });
-        if (!response.ok) throw new Error((await response.json()).message || 'Error en la petición DELETE');
-        return response.json();
-    }
-};
+import { validatePassword } from '../../../helpers/auth.js';
+import { api } from '../../../helpers/solicitudes.js'; // ¡Importamos nuestro nuevo servicio!
 
 export const usersController = () => {
-    console.log("Users Management Controller Initialized.");
-
-    // --- Referencias al DOM ---
-    const addUserBtn = document.getElementById('add-user-btn');
+    // --- Referencias al DOM (solo se obtienen una vez) ---
     const userFormSection = document.getElementById('user-form-section');
     const userForm = document.getElementById('user-form');
-    const usersTable = document.getElementById('users-table');
+    const usersTableBody = document.querySelector('#users-table tbody');
+    const formTitle = document.getElementById('form-title');
+    const passwordGroup = document.getElementById('password').closest('.form-group');
+    const roleSelect = document.getElementById('role');
     
     // --- Lógica de la Interfaz ---
     const showForm = (isEditing = false, user = {}) => {
-        userFormSection.style.display = 'block';
-        // CSeleccionar elementos por ID desde el documento
-        const titleElement = document.getElementById('form-title');
-        const saveButton = document.getElementById('save-user-btn');
-        const passwordInput = document.getElementById('password');
-        const roleSelect = document.getElementById('role');
-        const passwordGroup = passwordInput.closest('.form-group');
-        // Actualizar título y botón
-        if (titleElement) titleElement.textContent = isEditing ? 'Editar Usuario' : 'Añadir Nuevo Usuario';
-        if (saveButton) saveButton.textContent = isEditing ? 'Guardar Cambios' : 'Crear Usuario';
+        userForm.reset();
+        formTitle.textContent = isEditing ? 'Editar Usuario' : 'Añadir Nuevo Usuario';
+        
+        // El campo de contraseña solo es visible y requerido al crear un usuario nuevo.
+        passwordGroup.style.display = isEditing ? 'none' : 'block';
+        document.getElementById('password').required = !isEditing;
 
-        if (isEditing) {
-            // Ocultar el contenedor del campo de contraseña
-            if (passwordGroup) passwordGroup.style.display = 'none';
-            roleSelect.disabled = true;
-        } else {
-            userForm.reset();
-            document.getElementById('user-id').value = '';
-            if (passwordGroup) passwordGroup.style.display = 'block';
-            roleSelect.disabled = false;
+        // El rol no se puede cambiar al editar para evitar escalada de privilegios accidental.
+        roleSelect.disabled = isEditing;
+
+        // Rellenamos el formulario con los datos del usuario si estamos editando.
+        if(isEditing) {
+            document.getElementById('user-id').value = user.usuario_id;
+            document.getElementById('name').value = user.nombre;
+            document.getElementById('email').value = user.correo;
+            roleSelect.value = user.rol;
         }
-        // Poblar el formulario (se hace después de la lógica de mostrar/ocultar)
-        document.getElementById('user-id').value = user.usuario_id || '';
-        document.getElementById('name').value = user.nombre || '';
-        document.getElementById('email').value = user.correo || '';
-        document.getElementById('role').value = user.rol || 'mesero';
+
+        userFormSection.style.display = 'block';
     };
-    const hideForm = () => { userFormSection.style.display = 'none'; };
+
+    const hideForm = () => {
+        userFormSection.style.display = 'none';
+        userForm.reset();
+    };
 
     // --- Lógica de Negocio y API ---
     const loadUsers = async () => {
         try {
-            const users = await apiService.get('usuarios');
+            const users = await api.get('usuarios');
             renderTable(users);
         } catch (error) {
             showAlert(error.message, 'error');
+            usersTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-error">Error al cargar los usuarios.</td></tr>`;
         }
     };
 
     const handleSaveUser = async (event) => {
         event.preventDefault();
-        const id = userForm.querySelector('#user-id').value;
+        const id = document.getElementById('user-id').value;
         const userData = {
-            nombre: userForm.querySelector('#name').value,
-            correo: userForm.querySelector('#email').value,
-            rol: userForm.querySelector('#role').value,
+            nombre: document.getElementById('name').value,
+            correo: document.getElementById('email').value,
         };
-        
+
         try {
             if (id) { // --- MODO EDICIÓN ---
-                await apiService.put(`usuarios/${id}`, userData);
+                await api.put(`usuarios/${id}`, userData);
                 showAlert('Usuario actualizado exitosamente.', 'success');
             } else { // --- MODO CREACIÓN ---
-                const password = userForm.querySelector('#password').value;
+                const password = document.getElementById('password').value;
                 if (!validatePassword(password)) {
                     showAlert('La contraseña no cumple los requisitos de seguridad.', 'warning');
                     return;
                 }
                 userData.contraseña = password;
-                await apiService.post('usuarios', userData);
+                userData.rol = roleSelect.value;
+                await api.post('usuarios', userData);
                 showAlert('Usuario creado exitosamente.', 'success');
             }
             hideForm();
-            loadUsers();
+            await loadUsers(); // Recargamos la tabla para ver los cambios.
         } catch (error) {
             showAlert(error.message, 'error');
         }
     };
 
-    const handleEditClick = async (userId) => {
-        try {
-            const user = await apiService.get(`usuarios/${userId}`);
-            showForm(true, user);
-        } catch (error) {
-            showAlert(error.message, 'error');
-        }
+    const handleEditClick = (user) => {
+        // Pasamos el objeto de usuario completo para rellenar el formulario,
+        // así evitamos una llamada innecesaria a la API para obtener los datos.
+        showForm(true, user);
     };
 
-    const handleDeleteUser = async (userId, userName) => {
+    const handleDeleteClick = async (userId, userName) => {
         try {
+            // Usamos el modal de confirmación que ya tienes.
             await showConfirmModal('Confirmar Eliminación', `¿Está seguro de que desea eliminar a <strong>${userName}</strong>?`);
-            await apiService.delete(`usuarios/${userId}`);
+            // Si el usuario confirma, procedemos a eliminar.
+            await api.delete(`usuarios/${userId}`);
             showAlert('Usuario eliminado exitosamente.', 'success');
-            loadUsers();
+            await loadUsers(); // Recargamos la tabla.
         } catch (error) {
-            if(error) showAlert(error.message, 'error');
-            else console.log("Eliminación cancelada.");
+            // Si hay un error de la API, lo mostramos.
+            // Si el usuario cancela, `showConfirmModal` rechaza la promesa y no hacemos nada.
+            if (error && error.message) {
+                 showAlert(error.message, 'error');
+            } else {
+                console.log("Eliminación cancelada por el usuario.");
+            }
         }
     };
 
-    // --- Renderizado ---
+    // --- Renderizado de la Tabla ---
     const renderTable = (users) => {
-        usersTable.innerHTML = `
-            <thead>
-                <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Acciones</th></tr>
-            </thead>
-            <tbody>
-                ${users.map(user => `
-                    <tr>
-                        <td>${user.usuario_id}</td>
-                        <td>${user.nombre}</td>
-                        <td>${user.correo}</td>
-                        <td><span class="role-badge role-${user.rol.replace('administrador', 'admin')}">${user.rol}</span></td>
-                        <td class="table-actions">
-                            <button class="btn btn--info btn--small edit-btn" data-id="${user.usuario_id}">Editar</button>
-                            <button class="btn btn--danger btn--small delete-btn" data-id="${user.usuario_id}" data-name="${user.nombre}">Eliminar</button>
-                        </td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        `;
-        // Re-asignar listeners a los nuevos botones
-        usersTable.querySelectorAll('.edit-btn').forEach(btn => btn.onclick = () => handleEditClick(btn.dataset.id));
-        usersTable.querySelectorAll('.delete-btn').forEach(btn => btn.onclick = () => handleDeleteUser(btn.dataset.id, btn.dataset.name));
+        usersTableBody.innerHTML = ''; // Limpiamos la tabla antes de renderizar.
+        if (users.length === 0) {
+            usersTableBody.innerHTML = `<tr><td colspan="5" class="text-center">No hay usuarios registrados.</td></tr>`;
+            return;
+        }
+
+        users.forEach(user => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${user.usuario_id}</td>
+                <td>${user.nombre}</td>
+                <td>${user.correo}</td>
+                <td><span class="role-badge role-${user.rol.replace('administrador', 'admin')}">${user.rol}</span></td>
+                <td class="table-actions">
+                    <button class="btn btn--info btn--small edit-btn">Editar</button>
+                    <button class="btn btn--danger btn--small delete-btn">Eliminar</button>
+                </td>
+            `;
+
+            // Asignamos los listeners directamente a los botones de esta fila.
+            row.querySelector('.edit-btn').addEventListener('click', () => handleEditClick(user));
+            row.querySelector('.delete-btn').addEventListener('click', () => handleDeleteClick(user.usuario_id, user.nombre));
+
+            usersTableBody.appendChild(row);
+        });
     };
 
-    // --- Inicialización ---
-    document.getElementById('add-user-btn').addEventListener('click', () => showForm(false));
-    document.getElementById('cancel-user-form-btn').addEventListener('click', hideForm);
-    userForm.addEventListener('submit', handleSaveUser);
-    
-    loadUsers();
-};
+    // --- Inicialización del Controlador ---
+    const init = () => {
+        document.getElementById('add-user-btn').addEventListener('click', () => showForm(false));
+        document.getElementById('cancel-user-form-btn').addEventListener('click', hideForm);
+        userForm.addEventListener('submit', handleSaveUser);
+        
+        loadUsers(); // Carga inicial de usuarios al entrar a la vista.
+    };
 
+    init();
+};

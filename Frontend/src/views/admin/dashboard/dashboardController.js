@@ -1,36 +1,11 @@
-// src/views/admin/dashboard/dashboardController.js
+// ===========================================================
+// ARCHIVO: src/views/admin/dashboard/dashboardController.js 
+// ===========================================================
 
 import { showAlert } from '../../../helpers/alerts.js';
-
-const API_URL = 'http://localhost:3000/api';
-
-// --- API Service Helper para peticiones autenticadas ---
-const apiService = {
-    get: async (endpoint) => {
-        const token = localStorage.getItem('accessToken');
-        if (!token) {
-            // Si no hay token, no intentar hacer la petición.
-            throw new Error('No se proporcionó un token.');
-        }
-        
-        const response = await fetch(`${API_URL}/${endpoint}`, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` 
-            }
-        });
-        
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || `Error en la petición a ${endpoint}`);
-        }
-        return response.json();
-    }
-};
+import { api } from '../../../helpers/solicitudes.js'; 
 
 export const dashboardController = () => {
-    console.log("Dashboard Controller Initialized.");
-
     // --- LÓGICA DEL CARRUSEL ---
     let slideIndex = 0;
     const showSlides = () => {
@@ -41,7 +16,7 @@ export const dashboardController = () => {
         if (slideIndex > slides.length) slideIndex = 1;
         
         if (slides[slideIndex - 1]) {
-             slides[slideIndex - 1].style.display = "block";
+            slides[slideIndex - 1].style.display = "block";
         }
         setTimeout(showSlides, 4000);
     };
@@ -49,37 +24,51 @@ export const dashboardController = () => {
     // --- Carga de Datos desde la API ---
     const loadDashboardData = async () => {
         try {
-            // Se hace una única llamada al  endpoint del backend
-            const summaryData = await apiService.get('stats/dashboard-summary');
-            
-            // Se actualizan las tarjetas con los datos de la API
+            const summaryData = await api.get('stats/dashboard-summary');
             document.getElementById('pending-orders-count').textContent = summaryData.pendingOrdersCount;
             document.getElementById('registered-users-count').textContent = summaryData.registeredUsersCount;
             document.getElementById('daily-sales-amount').textContent = `$${summaryData.dailySalesAmount}`;
-
         } catch (error) {
             showAlert(error.message, 'error');
             console.error("Error al cargar los datos del dashboard:", error);
-            // Mostrar un estado de error en las tarjetas
             document.getElementById('pending-orders-count').textContent = 'Error';
             document.getElementById('registered-users-count').textContent = 'Error';
             document.getElementById('daily-sales-amount').textContent = 'Error';
         }
     };
     
-    const loadRecentActivity = () => {
-        // La actividad reciente se mantiene con datos de ejemplo por ahora
-        document.getElementById('activity-list').innerHTML = `
-            <li><span class="activity-date">2025-06-22:</span> Pedido #ORD123 completado</li>
-            <li><span class="activity-date">2025-06-21:</span> Nuevo usuario 'Pedro Mesero' registrado</li>
-        `;
+    // ---FUNCIÓN PARA CARGAR ACTIVIDAD RECIENTE ---
+    const loadRecentActivity = async () => {
+        const activityList = document.getElementById('activity-list');
+        try {
+            const activities = await api.get('stats/recent-activity');
+            
+            if (activities.length === 0) {
+                activityList.innerHTML = '<li>No hay actividad reciente para mostrar.</li>';
+                return;
+            }
+
+            // Formatear la fecha para que sea legible
+            const formatDate = (dateString) => {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+            };
+
+            activityList.innerHTML = activities.map(activity => `
+                <li><span class="activity-date">${formatDate(activity.date)}:</span> ${activity.description}</li>
+            `).join('');
+
+        } catch (error) {
+            console.error("Error al cargar la actividad reciente:", error);
+            activityList.innerHTML = '<li>Error al cargar la actividad.</li>';
+        }
     };
 
     // --- INICIALIZACIÓN DEL CONTROLADOR ---
     const init = () => {
         loadDashboardData();
-        loadRecentActivity();
-        showSlides(); // Iniciar el carrusel directamente
+        loadRecentActivity(); 
+        showSlides();
     };
 
     init();

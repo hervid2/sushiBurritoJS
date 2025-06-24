@@ -1,13 +1,88 @@
-// ==============================================
-// ARCHIVO: src/controllers/stats.controller.js 
-// ==============================================
+// =================================================================
+// ARCHIVO: src/controllers/stats.controller.js
+// DESCRIPCIÓN: Controlador de estadísticas 
+// =================================================================
 
 import db from '../models/index.js';
 import nodemailer from 'nodemailer';
 import PDFDocument from 'pdfkit';
 import { Op } from 'sequelize';
 
-const { Factura, Pedido, DetallePedido, Producto, Usuario, sequelize } = db;
+
+const { Factura, Pedido, DetallePedido, Producto, Usuario, MetodoPago, TransaccionPago, sequelize } = db;
+
+
+// --- Endpoint principal para obtener todas las estadísticas de la página ---
+export const getStatistics = async (req, res) => {
+    const { startDate, endDate } = req.query;
+
+    if (!startDate || !endDate) {
+        return res.status(400).send({ message: "Se requieren fechas de inicio y fin." });
+    }
+
+    const dateFilter = {
+        fecha_factura: {
+            [Op.between]: [new Date(startDate), new Date(new Date(endDate).setHours(23, 59, 59, 999))]
+        }
+    };
+
+    try {
+        const [summary, productsRanking, paymentMethods] = await Promise.all([
+            // 1. Resumen de ingresos y órdenes
+            Factura.findOne({
+                attributes: [
+                    [sequelize.fn('COUNT', sequelize.col('factura_id')), 'totalOrders'],
+                    [sequelize.fn('SUM', sequelize.col('total')), 'totalRevenue']
+                ],
+                where: dateFilter,
+                raw: true
+            }),
+            // 2. Ranking de productos
+            DetallePedido.findAll({
+                attributes: [
+                    [sequelize.col('Producto.nombre_producto'), 'name'],
+                    [sequelize.fn('SUM', sequelize.col('cantidad')), 'quantity']
+                ],
+                include: [
+                    { model: Producto, attributes: [] },
+                    { model: Pedido, attributes: [], where: { fecha_creacion: { [Op.between]: [new Date(startDate), new Date(endDate)] } } }
+                ],
+                group: ['Producto.nombre_producto'],
+                order: [[sequelize.fn('SUM', sequelize.col('cantidad')), 'DESC']],
+                limit: 10,
+                raw: true
+            }),
+            // 3. NUEVO: Desglose por método de pago
+            TransaccionPago.findAll({
+                attributes: [
+                    [sequelize.col('MetodoPago.nombre_metodo'), 'name'],
+                    [sequelize.fn('SUM', sequelize.col('monto_pagado')), 'totalAmount']
+                ],
+                include: [
+                    { model: MetodoPago, attributes: [] },
+                    { model: Factura, attributes: [], where: dateFilter }
+                ],
+                group: ['MetodoPago.nombre_metodo'],
+                raw: true
+            })
+        ]);
+
+        res.status(200).send({
+            summary: {
+                totalOrders: summary.totalOrders || 0,
+                totalRevenue: parseFloat(summary.totalRevenue || 0).toFixed(2)
+            },
+            productsRanking,
+            paymentMethods
+        });
+
+    } catch (error) {
+        console.error("Error al obtener estadísticas:", error);
+        res.status(500).send({ message: "Error interno al procesar las estadísticas." });
+    }
+};
+
+
 
 // --- Lógica para obtener el resumen del dashboard ---
 export const getDashboardSummary = async (req, res) => {
@@ -43,6 +118,54 @@ export const getDashboardSummary = async (req, res) => {
     }
 };
 
+
+
+// --- Lógica para obtener la actividad reciente (pedidos y facturas) ---
+export const getRecentActivity = async (req, res) => {
+    try {
+        // Obtenemos los 5 pedidos más recientes
+        const recentOrders = await db.Pedido.findAll({
+            limit: 5,
+            order: [['fecha_creacion', 'DESC']],
+            attributes: ['pedido_id', 'fecha_creacion']
+        });
+
+        // Obtenemos las 5 facturas más recientes
+        const recentInvoices = await db.Factura.findAll({
+            limit: 5,
+            order: [['fecha_factura', 'DESC']],
+            attributes: ['factura_id', 'pedido_id', 'fecha_factura']
+        });
+
+        // Mapeamos ambos resultados a un formato común
+        const activities = [
+            ...recentOrders.map(order => ({
+                type: 'pedido',
+                date: order.fecha_creacion,
+                description: `Nuevo pedido #${order.pedido_id} fue creado.`
+            })),
+            ...recentInvoices.map(invoice => ({
+                type: 'factura',
+                date: invoice.fecha_factura,
+                description: `Se generó la factura #${invoice.factura_id} para el pedido #${invoice.pedido_id}.`
+            }))
+        ];
+
+        // Ordenamos la actividad combinada por fecha, de más reciente a más antiguo
+        const sortedActivities = activities
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(0, 5); // Nos quedamos con los 5 eventos más recientes en total
+
+        res.status(200).send(sortedActivities);
+
+    } catch (error) {
+        console.error("Error al obtener la actividad reciente:", error);
+        res.status(500).send({ message: "Error interno al procesar la actividad." });
+    }
+};
+
+
+
 // --- Lógica para generar y enviar el reporte ---
 export const sendStatisticsReport = async (req, res) => {
     const { startDate, endDate } = req.body;
@@ -76,8 +199,8 @@ export const sendStatisticsReport = async (req, res) => {
     }
 };
 
-// --- Funciones auxiliares ---
 
+// --- Funciones auxiliares ---
 async function getStatisticsData(startDate, endDate) {
     // Calcular total de pedidos e ingresos
     const summary = await Factura.findAll({
@@ -122,6 +245,8 @@ async function getStatisticsData(startDate, endDate) {
     };
 }
 
+
+// --- Función para crear el PDF en memoria ---
 async function createPdfBuffer(stats, startDate, endDate) {
     return new Promise((resolve) => {
         const doc = new PDFDocument({ margin: 50 });
@@ -164,6 +289,8 @@ async function createPdfBuffer(stats, startDate, endDate) {
     });
 }
 
+
+// --- Función para enviar el correo con el PDF adjunto ---
 async function sendEmailWithAttachment(recipientEmail, pdfBuffer, startDate, endDate) {
     const transporter = nodemailer.createTransport({
         service: process.env.EMAIL_SERVICE,
