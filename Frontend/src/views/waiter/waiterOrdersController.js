@@ -1,11 +1,12 @@
-// src/views/waiter/waiterOrdersController.js
+// =====================================================
+// ARCHIVO: src/views/waiter/waiterOrdersController.js 
+// =====================================================
 
 import { showAlert } from '../../helpers/alerts.js';
 import { showConfirmModal } from '../../helpers/modalHelper.js';
+import { api } from '../../helpers/solicitudes.js';
 
 export const waiterOrdersController = () => {
-    console.log("Waiter Orders Controller Initialized.");
-
     // --- Referencias al DOM ---
     const tablesGrid = document.getElementById('tables-grid');
     if (!tablesGrid) {
@@ -39,77 +40,63 @@ export const waiterOrdersController = () => {
     let currentPage = 1;
     const itemsPerPage = 6;
 
-    // --- API Simulada ---
-    const FAKE_TABLES_DB = Array.from({ length: 12 }, (_, i) => ({ id: i + 1, name: `Mesa ${i + 1}`, status: i % 3 === 0 ? 'occupied' : 'available', orderId: i % 3 === 0 ? `ORD${String(i + 1).padStart(3, '0')}` : null, orderStatus: i % 3 === 0 ? (i % 2 === 0 ? 'pending' : 'preparing') : null }));
-    const FAKE_MENU_DB = [ { id: 'P01', name: 'Sushi Roll California', category: 'sushi', price: 12.50 }, { id: 'P02', name: 'Burrito Teriyaki', category: 'burrito', price: 15.00 }, { id: 'P03', name: 'Gyoza de Cerdo', category: 'entradas', price: 7.00 }, { id: 'B01', name: 'Coca-Cola', category: 'bebidas', price: 2.50 }, { id: 'D01', name: 'Tarta de Matcha', category: 'postres', price: 5.00 } ];
-    const FAKE_CATEGORIES = ['sushi', 'burrito', 'entradas', 'bebidas', 'postres'];
-
-    const fetchTables = async () => new Promise(r => setTimeout(() => r([...FAKE_TABLES_DB]), 200));
-    const fetchMenuAndCategories = async () => new Promise(r => setTimeout(() => r({ menu: FAKE_MENU_DB, categories: FAKE_CATEGORIES }), 200));
-    const fetchOrderById = async (orderId) => new Promise(r => {
-        const table = FAKE_TABLES_DB.find(t => t.orderId === orderId);
-        if(table) r({ id: orderId, tableId: table.id, status: table.orderStatus, items: [{ productId: 'P01', name: 'Sushi Roll California', quantity: 2, notes: 'Extra wasabi', price: 12.50 }] });
-        else r(null);
-    });
-    const updateOrderApi = async (orderId, items) => new Promise(r => setTimeout(() => { console.log(`Updating order ${orderId}`, items); r({success: true}); }, 400));
-    const createOrderApi = async (tableId, items) => new Promise(r => setTimeout(() => { console.log(`Creating order for table ${tableId}`, items); const newId = `ORD${Math.floor(Math.random()*900)+100}`; r({success: true, orderId: newId}); }, 400));
-    const updateTableStatus = async (tableId, status, orderId = null) => new Promise(r => setTimeout(() => {
-        const table = FAKE_TABLES_DB.find(t => t.id === tableId);
-        if (table) { table.status = status; table.orderId = orderId; }
-        r({success: true});
-    }, 100));
-
     // --- Lógica de Renderizado ---
-    const renderPage = () => {
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const pageTables = allTables.slice(startIndex, startIndex + itemsPerPage);
-        tablesGrid.innerHTML = pageTables.map(table => `
-            <div class="table-card table-card--${table.status}" data-table-id="${table.id}">
-                <div class="table-card__header"><h3 class="table-card__name">${table.name}</h3></div>
-                <div class="table-card__body">
-                    <p class="table-card__info"><strong>Estado:</strong> ${table.status === 'available' ? 'Disponible' : 'Ocupada'}</p>
-                    ${table.orderId ? `<p class="table-card__info"><strong>Pedido:</strong> #${table.orderId}</p>` : ''}
-                </div>
-                <div class="table-card__actions">
-                    ${table.status === 'available' ? `<button class="btn btn--primary open-order-btn" data-table-id="${table.id}">Nuevo Pedido</button>` : ''}
-                    ${table.status === 'occupied' ? `<button class="btn btn--info view-order-btn" data-order-id="${table.orderId}">Ver/Editar Pedido</button>` : ''}
-                    ${table.status === 'occupied' ? `<button class="btn btn--secondary close-table-btn" data-table-id="${table.id}">Cerrar Mesa</button>` : ''}
-                </div>
-            </div>
-        `).join('');
-        renderPagination();
-    };
-    
     const renderPagination = () => {
         if (!paginationContainer) return;
         paginationContainer.innerHTML = '';
         const totalPages = Math.ceil(allTables.length / itemsPerPage);
         if (totalPages <= 1) return;
-        const ul = document.createElement('ul');
-        ul.className = 'pagination';
+
+        let buttonsHTML = '';
         for (let i = 1; i <= totalPages; i++) {
-            const pageLi = document.createElement('li');
-            const pageBtn = document.createElement('button');
-            pageBtn.textContent = i;
-            pageBtn.className = 'pagination-btn';
-            if (i === currentPage) pageBtn.classList.add('active');
-            pageBtn.onclick = () => { currentPage = i; renderPage(); };
-            pageLi.appendChild(pageBtn);
-            ul.appendChild(pageLi);
+            buttonsHTML += `<li><button class="pagination-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button></li>`;
         }
-        paginationContainer.appendChild(ul);
+        paginationContainer.innerHTML = `<ul>${buttonsHTML}</ul>`;
+
+        paginationContainer.querySelectorAll('.pagination-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentPage = parseInt(btn.dataset.page);
+                renderPage();
+            });
+        });
+    };
+
+    const renderPage = () => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const pageTables = allTables.slice(startIndex, startIndex + itemsPerPage);
+        tablesGrid.innerHTML = pageTables.map(table => `
+            <div class="table-card table-card--${table.estado}" data-table-id="${table.mesa_id}">
+                <div class="table-card__header"><h3 class="table-card__name">Mesa ${table.numero_mesa}</h3></div>
+                <div class="table-card__body">
+                    <p class="table-card__info"><strong>Estado:</strong> ${table.estado}</p>
+                    ${table.pedido_id ? `<p class="table-card__info"><strong>Pedido:</strong> #${table.pedido_id}</p>` : ''}
+                </div>
+                <div class="table-card__actions">
+                    ${table.estado === 'disponible' ? `<button class="btn btn--primary open-order-btn" data-table-id="${table.mesa_id}" data-table-name="Mesa ${table.numero_mesa}">Nuevo Pedido</button>` : ''}
+                    ${table.estado === 'ocupada' && table.pedido_id ? `<button class="btn btn--info view-order-btn" data-order-id="${table.pedido_id}">Ver/Editar Pedido</button>` : ''}
+                </div>
+            </div>
+        `).join('');
+        renderPagination();
     };
 
     const renderOrderItems = () => {
         let total = 0;
         if (currentOrderItems.length > 0) {
+            //  El parámetro 'index' en el map  identifica cada artículo.
             orderItemsList.innerHTML = currentOrderItems.map((item, index) => {
-                const subtotal = item.price * item.quantity;
+                const subtotal = item.valor_neto * item.cantidad;
                 total += subtotal;
                 return `
                     <div class="order-item-entry">
-                        <span>${item.quantity}x ${item.name} ${item.notes ? `<em>(${item.notes})</em>` : ''}</span>
-                        <span><strong>$${subtotal.toFixed(2)}</strong></span>
+                        <div class="order-item-details">
+                            <span>${item.cantidad}x ${item.nombre_producto}</span>
+                            ${item.notas ? `<em class="order-item-notes">(${item.notas})</em>` : ''}
+                        </div>
+                        <div class="order-item-actions">
+                            <span><strong>$${subtotal.toFixed(2)}</strong></span>
+                            <button type="button" class="btn btn--danger btn--small delete-order-item-btn" data-index="${index}">X</button>
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -119,13 +106,13 @@ export const waiterOrdersController = () => {
         orderTotalPriceSpan.textContent = `$${total.toFixed(2)}`;
     };
 
-    const populateCategoryFilter = () => categoryFilterSelect.innerHTML = ['<option value="all">Todas</option>', ...allCategories.map(c => `<option value="${c}">${c}</option>`)].join('');
-    const populateItemSelect = (category = 'all') => {
-        const items = category === 'all' ? allMenuItems : allMenuItems.filter(i => i.category === category);
-        itemSelect.innerHTML = items.map(i => `<option value="${i.id}">${i.name} ($${i.price.toFixed(2)})</option>`).join('');
+    const populateCategoryFilter = () => categoryFilterSelect.innerHTML = ['<option value="all">Todas</option>', ...allCategories.map(c => `<option value="${c.categoria_id}">${c.nombre}</option>`)].join('');
+    
+    const populateItemSelect = (categoryId = 'all') => {
+        const items = categoryId === 'all' ? allMenuItems : allMenuItems.filter(i => i.categoria_id == categoryId);
+        itemSelect.innerHTML = items.map(i => `<option value="${i.producto_id}">${i.nombre_producto} ($${parseFloat(i.valor_neto).toFixed(2)})</option>`).join('');
     };
-
-    // --- Lógica de la Interfaz ---
+    
     const openOrderModal = (config) => {
         orderForm.reset();
         orderModalTitle.textContent = config.title;
@@ -133,7 +120,8 @@ export const waiterOrdersController = () => {
         tableIdHiddenInput.value = config.tableId;
         currentOrderItems = config.items || [];
         renderOrderItems();
-        const isEditable = config.isEditable;
+
+        const isEditable = !config.status || config.status === 'pendiente';
         orderStatusContainer.style.display = config.status ? 'block' : 'none';
         if (config.status) {
             orderStatusDisplay.textContent = `Estado: ${config.status}`;
@@ -143,88 +131,74 @@ export const waiterOrdersController = () => {
         submitOrderBtn.style.display = isEditable ? 'block' : 'none';
         addItemSection.style.display = 'none';
         if (!isEditable && config.status) showAlert(`Este pedido no es editable (estado: ${config.status}).`, 'info');
+        
         orderModal.classList.add('is-active');
     };
+    
+    // --- MANEJADORES DE EVENTOS CONECTADOS A LA API ---
+    // función para manejar la eliminación de un artículo del pedido
+    const handleDeleteItemFromOrder = (itemIndex) => {
+        currentOrderItems.splice(itemIndex, 1); // Elimina el artículo del array
+        renderOrderItems(); // Vuelve a renderizar la lista y el total
+    };
 
-    const handleNewOrderClick = (tableId) => openOrderModal({ title: `Nuevo Pedido para Mesa ${tableId}`, tableId: parseInt(tableId), isEditable: true });
+    const handleNewOrderClick = (tableId, tableName) => openOrderModal({ title: `Nuevo Pedido para ${tableName}`, tableId, isEditable: true });
     
     const handleViewOrderClick = async (orderId) => {
-        const order = await fetchOrderById(orderId);
-        if (order) {
-            openOrderModal({ title: `Detalles del Pedido #${orderId}`, orderId: order.id, tableId: order.tableId, status: order.status, items: order.items, isEditable: order.status === 'pending' });
-        } else {
-            showAlert('No se encontró el pedido asociado.', 'error');
+        try {
+            const order = await api.get(`pedidos/${orderId}`);
+            const items = order.Productos.map(p => ({
+                producto_id: p.producto_id,
+                nombre_producto: p.nombre_producto,
+                valor_neto: p.valor_neto,
+                cantidad: p.DetallePedido.cantidad,
+                notas: p.DetallePedido.notas,
+            }));
+            openOrderModal({ title: `Detalles del Pedido #${orderId}`, orderId: order.pedido_id, tableId: order.mesa_id, status: order.estado, items, isEditable: order.estado === 'pendiente' });
+        } catch (error) {
+            showAlert(error.message, 'error');
         }
     };
     
-    const handleCloseTable = async (tableId) => {
-        try {
-            await showConfirmModal('Confirmar Cierre', `¿Está seguro de que desea cerrar y liberar la Mesa ${tableId}?`);
-            await updateTableStatus(parseInt(tableId), 'available', null);
-            showAlert(`Mesa ${tableId} liberada.`, 'success');
-            await loadInitialData();
-        } catch { console.log("Cierre de mesa cancelado."); }
-    };
-
     const handleSaveOrder = async (e) => {
         e.preventDefault();
         const orderId = orderIdInput.value;
-        const tableId = parseInt(tableIdHiddenInput.value);
+        const tableId = tableIdHiddenInput.value;
         if (currentOrderItems.length === 0) {
             showAlert('Debe añadir al menos un artículo al pedido.', 'warning');
             return;
         }
-        const itemsToSave = currentOrderItems.map(item => ({ productId: item.productId, quantity: item.quantity, notes: item.notes }));
+        const orderData = {
+            mesa_id: tableId,
+            items: currentOrderItems.map(item => ({ producto_id: item.producto_id, cantidad: item.cantidad, notas: item.notas }))
+        };
         try {
             if (orderId) {
-                await updateOrderApi(orderId, itemsToSave);
-                showAlert('Pedido actualizado.', 'success');
+                await api.put(`pedidos/${orderId}`, { items: orderData.items });
+                showAlert('Pedido actualizado correctamente.', 'success');
             } else {
-                const result = await createOrderApi(tableId, itemsToSave);
-                await updateTableStatus(tableId, 'occupied', result.orderId);
-                showAlert('Pedido creado.', 'success');
+                await api.post('pedidos', orderData);
+                showAlert('Pedido creado correctamente.', 'success');
             }
             orderModal.classList.remove('is-active');
             await loadInitialData();
-        } catch(error) { showAlert('Error al guardar el pedido.', 'error'); }
-    };
-    
-    // --- Listeners e Inicialización ---
-    const attachListeners = () => {
-        tablesGrid.addEventListener('click', (e) => {
-            if (e.target.matches('.open-order-btn')) handleNewOrderClick(e.target.dataset.tableId);
-            if (e.target.matches('.view-order-btn')) handleViewOrderClick(e.target.dataset.orderId);
-            if (e.target.matches('.close-table-btn')) handleCloseTable(e.target.dataset.tableId);
-        });
-        modifyOrderBtn.onclick = () => { addItemSection.style.display = 'block'; };
-        categoryFilterSelect.onchange = () => populateItemSelect(categoryFilterSelect.value);
-        confirmAddItemBtn.onclick = () => {
-            const selectedItem = allMenuItems.find(i => i.id === itemSelect.value);
-            if (selectedItem) {
-                currentOrderItems.push({ productId: selectedItem.id, name: selectedItem.name, quantity: itemQuantityInput.valueAsNumber, notes: itemNotesInput.value, price: selectedItem.price });
-                renderOrderItems();
-            }
-            addItemSection.style.display = 'none';
-            itemNotesInput.value = '';
-        };
-        orderForm.onsubmit = handleSaveOrder;
-        closeOrderModalBtn.onclick = () => orderModal.classList.remove('is-active');
-        cancelOrderModalBtn.onclick = () => orderModal.classList.remove('is-active');
+        } catch(error) { 
+            showAlert(error.message, 'error');
+        }
     };
     
     const loadInitialData = async () => {
         tablesGrid.innerHTML = '<div class="loading-message">Cargando...</div>';
         try {
-            const tablesData = await fetchTables();
-            allTables = tablesData;
-            
-            const menuData = await fetchMenuAndCategories();
-            allMenuItems = menuData.menu;
-            allCategories = menuData.categories;
-            
+            const [tablesData, menuData, categoriesData] = await Promise.all([api.get('mesas'), api.get('productos'), api.get('categorias')]);
+            const activeOrders = await api.get('pedidos?estado=pendiente&estado=en_preparacion&estado=preparado&estado=entregado');
+            const orderMap = new Map(activeOrders.map(order => [order.mesa_id, order.pedido_id]));
+            allTables = tablesData.map(table => ({ ...table, pedido_id: orderMap.get(table.mesa_id) || null }));
+            allMenuItems = menuData;
+            allCategories = categoriesData;
             populateCategoryFilter();
             populateItemSelect();
-            
+            currentPage = 1;
             renderPage();
         } catch (error) {
             console.error(error);
@@ -232,9 +206,50 @@ export const waiterOrdersController = () => {
         }
     };
     
-    attachListeners();
-    loadInitialData();
+    // --- Listeners e Inicialización ---
+    const init = () => {
+        tablesGrid.addEventListener('click', (e) => {
+            const target = e.target.closest('button');
+            if (!target) return;
+            if (target.matches('.open-order-btn')) handleNewOrderClick(target.dataset.tableId, target.dataset.tableName);
+            if (target.matches('.view-order-btn')) handleViewOrderClick(target.dataset.orderId);
+        });
+        
+        // <-- Listener a la lista de artículos para delegación de eventos.
+        orderItemsList.addEventListener('click', (e) => {
+            if (e.target.matches('.delete-order-item-btn')) {
+                const itemIndex = parseInt(e.target.dataset.index, 10);
+                handleDeleteItemFromOrder(itemIndex);
+            }
+        });
+
+        modifyOrderBtn.onclick = () => { addItemSection.style.display = 'block'; };
+        categoryFilterSelect.onchange = () => populateItemSelect(categoryFilterSelect.value);
+
+        confirmAddItemBtn.onclick = () => {
+            const selectedItem = allMenuItems.find(i => i.producto_id == itemSelect.value);
+            if (selectedItem) {
+                currentOrderItems.push({
+                    producto_id: selectedItem.producto_id,
+                    nombre_producto: selectedItem.nombre_producto,
+                    valor_neto: selectedItem.valor_neto,
+                    cantidad: itemQuantityInput.valueAsNumber,
+                    notas: itemNotesInput.value,
+                });
+                renderOrderItems();
+            }
+            addItemSection.style.display = 'none';
+            itemQuantityInput.value = 1;
+            itemNotesInput.value = '';
+        };
+
+        orderForm.onsubmit = handleSaveOrder;
+        closeOrderModalBtn.onclick = () => orderModal.classList.remove('is-active');
+        cancelOrderModalBtn.onclick = () => orderModal.classList.remove('is-active');
+
+        loadInitialData();
+    };
+    
+    init();
 };
-
-
 

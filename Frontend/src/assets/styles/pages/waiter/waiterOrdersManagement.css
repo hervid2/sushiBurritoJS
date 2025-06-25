@@ -101,3 +101,19 @@
   font-size: var(--text-lg);
   font-weight: 700;
 }
+
+.order-item-entry {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .order-item-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .order-item-notes {
+        display: block;
+        font-size: 0.8em;
+        color: #6c757d;
+    }
