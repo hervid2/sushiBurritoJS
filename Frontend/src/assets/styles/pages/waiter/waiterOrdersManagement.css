@@ -117,3 +117,10 @@
         font-size: 0.8em;
         color: #6c757d;
     }
+
+     .order-item-entry { display: flex; justify-content: space-between; align-items: center; }
+        .order-item-actions { display: flex; align-items: center; gap: 1rem; }
+        .order-item-notes { display: block; font-size: 0.8em; color: #6c757d; }
+        .table-card--limpieza { border-left-color: #17a2b8; /* Azul 'info' */ }
+        .mark-clean-btn { background-color: #0d6efd; color: white; }
+        .mark-clean-btn:hover { background-color: #0b5ed7; }

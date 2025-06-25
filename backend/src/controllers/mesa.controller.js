@@ -48,6 +48,21 @@ export const updateMesaEstado = async (req, res) => {
     }
 };
 
+// Marcar una mesa como disponible (después de la limpieza)
+export const markTableAsAvailable = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const [num] = await Mesa.update({ estado: 'disponible' }, { where: { mesa_id: id } });
+        if (num == 1) {
+            res.send({ message: "Mesa marcada como disponible." });
+        } else {
+            res.status(404).send({ message: `No se encontró la mesa con id=${id}.` });
+        }
+    } catch (error) {
+        res.status(500).send({ message: error.message });
+    }
+};
+
 // Eliminar una mesa
 export const deleteMesa = async (req, res) => {
     try {

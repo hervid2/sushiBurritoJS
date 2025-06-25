@@ -51,10 +51,21 @@ export const createPedido = async (req, res) => {
     }
 };
 
-// Obtener todos los pedidos (ejemplo simple)
+// Obtener todos los pedidos (AHORA CON FILTRO POR ESTADO)
 export const getAllPedidos = async (req, res) => {
     try {
-        const pedidos = await Pedido.findAll({ include: [db.Usuario, db.Mesa] });
+        const whereClause = {};
+        // Si en la URL se pasa uno o más estados
+        if (req.query.estado) {
+            // Sequelize maneja automáticamente si es un string o un array de strings
+            whereClause.estado = req.query.estado;
+        }
+
+        const pedidos = await db.Pedido.findAll({
+            where: whereClause, // Aplica el filtro
+            include: [db.Usuario, db.Mesa], // Mantiene la info del usuario y mesa
+            order: [['fecha_creacion', 'DESC']] // Ordena por más reciente
+        });
         res.status(200).send(pedidos);
     } catch (error) {
         res.status(500).send({ message: error.message });
@@ -134,7 +145,7 @@ export const deletePedido = async (req, res) => {
             await t.rollback();
             return res.status(404).send({ message: "Pedido no encontrado." });
         }
-        
+
         // Liberar la mesa asociada
         await Mesa.update({ estado: 'disponible' }, { where: { mesa_id: pedido.mesa_id }, transaction: t });
 

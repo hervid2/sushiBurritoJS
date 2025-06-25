@@ -174,3 +174,84 @@ INSERT INTO roles (nombre_rol) VALUES
 ('mesero'),
 ('cocinero');
 
+-- Insertar datos en la tabla de categorías (si no existen)
+INSERT IGNORE INTO categorias (categoria_id, nombre) VALUES
+(4, 'Entradas'),
+(1, 'Infantil'),
+(5, 'Platos Fuertes'),
+(3, 'Postres'),
+(2, 'Bebidas'),
+(6, 'Acompañamientos'),
+(13, 'vegano');
+
+-- Insertar productos de Entradas
+INSERT INTO productos (nombre_producto, descripcion_ingredientes, valor_neto, categoria_id) VALUES
+('LANGOSTINOS TEMPURA', 'Langostinos tempurizados acompañados de salsas de la casa.', 17900.00, 4),
+('LANGOSTINOS SAMURAI', 'Langostinos tempurizados, con champiñones en queso mozzarella y nachos.', 23800.00, 4),
+('PALMITOS CRUNCHY TOKYO', 'Palmitos crocantes rellenos de queso crema, en una cama de aguacate.', 19800.00, 4),
+('CHICHARRÓN DE PESCADO', 'Tilapia freída en cubos, papa criolla tempurizada y dip de salsa picante.', 24900.00, 4);
+
+-- Insertar productos de Platos Fuertes
+INSERT INTO productos (nombre_producto, descripcion_ingredientes, valor_neto, categoria_id) VALUES
+('AMERICAN CHICKEN', 'Nuggets de pollo de la casa, tocineta, yuca en croqueta, mix de lechugas, pepino en rodajas, cebolla caramelizada, queso cheddar, aguacate, queso crema, arroz de sushi, alga nori.', 29700.00, 5),
+('KARATE CHICKEN', 'Pollo en salsa teriyaki con vegetales al wok (pimentón verde, pimentón rojo, cebolla roja, zanahoria en julianas) papa criolla, semillas de sésamo, tomates cherry, aguacate en tajadas, queso crema, arroz de sushi, alga nori.', 30800.00, 5),
+('CHANCHO POWER', 'Bondiola de cerdo desmechada en salsa bbq, mix de lechugas, calabacín, papa criolla, cebolla grillé, chicharrones carnudos, guacate, maíz tierno, queso crema, arroz de sushi, alga nori.', 33500.00, 5),
+('EL MÁS CHIDO', 'Carne molida de res con salsa bbq, mix de lechugas, queso mozzarella rallado, maíz tierno, aguacate, pico de gallo, nachos picados, queso crema, arroz de sushi, alga nori.', 33500.00, 5),
+('EL KAPPO (De la casa)', 'Langostinos tempurizados, palmito de cangrejo picado, zanahoria en julianas, calabacín en julianas, mix de lechugas, mango, aguacate, queso crema, arroz de sushi, alga nori.', 34500.00, 5),
+('EBI', 'Palmito de cangrejo crujiente, camarones, mix de lechugas, zanahoria en julianas, pepino en bastones, aguacate en tajadas, queso crema, arroz de sushi, y alga nori.', 34500.00, 5),
+('EL TUNA SALMÓN', 'Salmón fresco en cubos, atún fresco en cubos, mix de lechugas, zanahoria en julianas, pepino en bastones, queso mozzarella en tajadas, aguacate, mango, queso crema, arroz de sushi, alga nori.', 38800.00, 5),
+('NINJA CRUNCH', 'Salmón tempurizado en cubos con vegetales al wok (pimentón, cebolla roja, zanahoria en julianas) en salsa teriyaki, langostino tempurizado, mix de lechugas, piel de salmón crocante, aguacate, trocitos de jengibre, tocineta, queso crema, arroz de sushi, alga nori.', 38880.00, 5),
+('PICANTE TIGRE SIBERIANO', 'Camarones en salsa picante, palmito de cangrejo desmechado, tocineta, aguacate, arroz de sushi y alga nori, nachos.', 42700.00, 5),
+('LEOPARDO', 'Bondiola desmechada con hogao, chorizo picante, tomate Cherry, maduro caramelizado, queso cheddar, aguacate, mix de lechugas, arroz de sushi y alga nori.', 39600.00, 5),
+('JUNIOR TRADICIONAL CARNÍVORO', 'Carne molida de res ó carne de cerdo (la que el cliente prefiera), maíz tierno, aguacate, nachos o papa criolla (lo que el cliente prefiera) queso crema, pico de gallo, queso cheddar, queso mozzarella, arroz de sushi.', 32900.00, 5),
+('JUNIOR TRADICIONAL KATANA BAKANA', 'Langostinos tempurizados, tilapia en cubos, mezcla de vegetales al wok (espinaca, zanahoria, pepino, calabacín amarillo, y cilantro), champiñones, croquetas de yuca, aguacate, repollo morado, arroz de sushi.', 33700.00, 5),
+('JUNIOR TRADICIONAL MONTE FUJI', 'Camarones, palmitos en cubos crujientes, tomate cherry, aguacate, fresas, calabacín, queso cheddar, arroz de sushi.', 34500.00, 5),
+('JUNIOR TRADICIONAL SALMÓN EMPERADOR', 'Salmón fresco en cubos, palmito de cangrejo picado, pepino en rodajas, aguacate, zanahoria, repollo morado, queso mozzarella en cubos, arándanos, arroz de sushi, jengibre.', 34500.00, 5);
+
+-- Insertar productos Veganos
+INSERT INTO productos (nombre_producto, descripcion_ingredientes, valor_neto, categoria_id) VALUES
+('VEGGIE', 'Tofu en cubos apanados, champiñones salteados con pimentón y cebolla roja, maíz tierno, aguacate, mix de lechugas, zanahoria en julianas, tomate cherry, arroz de sushi, alga nori.', 33800.00, 13);
+
+-- Insertar productos Infantiles
+INSERT INTO productos (nombre_producto, descripcion_ingredientes, valor_neto, categoria_id) VALUES
+('NUGGETS DE POLLO', 'Nuggets de pollo acompañados con papas a la francesa.', 23800.00, 1),
+('PICADITA JUNIOR', 'Pollo en cuadritos, palmito apanado y/o albóndigas de carne de res, en cama de yuca frita, o papas a la francesa, o papa criolla.', 24500.00, 1);
+
+-- Insertar Postres
+INSERT INTO productos (nombre_producto, descripcion_ingredientes, valor_neto, categoria_id) VALUES
+('BROWNIE CON HELADO', 'Brownie acompañado de helado.', 10800.00, 3),
+('HELADO FRITO', 'Helado frito crujiente.', 16900.00, 3);
+
+-- Insertar Acompañamientos
+INSERT INTO productos (nombre_producto, descripcion_ingredientes, valor_neto, categoria_id) VALUES
+('NACHOS', 'Nachos crocantes.', 7000.00, 6),
+('CROQUETAS DE YUCA', 'Croquetas de yuca fritas.', 8500.00, 6),
+('PAPA CRIOLLA', 'Papa criolla frita.', 8500.00, 6),
+('PAPAS A LA FRANCESA', 'Papas fritas estilo francés.', 8500.00, 6),
+('ADICIONAL DE TEMPURA', 'Extra de tempura.', 2500.00, 6);
+
+-- Insertar Bebidas
+INSERT INTO productos (nombre_producto, descripcion_ingredientes, valor_neto, categoria_id) VALUES
+('GRANIZADA LIMÓN', 'Bebida granizada de limón.', 7500.00, 2),
+('GRANIZADA NARANJA', 'Bebida granizada de naranja.', 8000.00, 2),
+('GRANIZADA MANDARINA', 'Bebida granizada de mandarina.', 8000.00, 2),
+('GRANIZADA MARACUMANGO', 'Bebida granizada de maracuyá y mango.', 9000.00, 2),
+('TÉ TROPICAL DE JAMAICA', 'Té de flor de jamaica.', 9000.00, 2),
+('GRANIZADA MANGO PIÑA CEREZA', 'Bebida granizada de mango, piña y cereza.', 9000.00, 2),
+('LIMONADA DE YERBABUENA', 'Limonada con hierbabuena.', 9000.00, 2),
+('GRANIZADA MANGO YERBABUENA', 'Bebida granizada de mango con hierbabuena.', 9000.00, 2),
+('LIMONADA DE PATILLA', 'Limonada de patilla (sandía).', 9000.00, 2),
+('GRANIZADO DE COCO', 'Bebida granizada de coco.', 13000.00, 2),
+('SODAS DE FRUTAS', 'Soda de frutas variadas.', 11800.00, 2),
+('AGUA', 'Agua mineral.', 5500.00, 2),
+('AGUA CON GAS', 'Agua mineral con gas.', 5500.00, 2),
+('GASEOSA PERSONAL', 'Gaseosa en tamaño personal.', 6000.00, 2),
+('SODA', 'Soda tradicional.', 6000.00, 2),
+('TE HATSU', 'Té Hatsu especial.', 9000.00, 2),
+('HATSU SODA', 'Soda Hatsu.', 7500.00, 2),
+('CERVEZA CLUB COLOMBIA', 'Cerveza Club Colombia.', 9000.00, 2),
+('CERVEZA CORONA', 'Cerveza Corona.', 9500.00, 2),
+('CERVEZA CORONITA', 'Cerveza Coronita.', 8000.00, 2),
+('CERVEZA HEINEKEN', 'Cerveza Heineken.', 9500.00, 2),
+('MICHELADA', 'Michelada tradicional.', 4000.00, 2);
+

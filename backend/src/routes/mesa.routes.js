@@ -6,6 +6,7 @@ import { Router } from 'express';
 import * as mesaController from '../controllers/mesa.controller.js';
 import { verifyToken, isAdmin } from '../middleware/auth.middleware.js';
 
+
 const router = Router();
 
 // --- Rutas para Mesas ---
@@ -18,6 +19,9 @@ router.post('/', [verifyToken, isAdmin], mesaController.createMesa);
 
 // Actualizar el estado de una mesa (protegido, meseros o admin pueden hacerlo)
 router.put('/:id/estado', [verifyToken], mesaController.updateMesaEstado);
+
+// Ruta para que un mesero marque una mesa como limpia y disponible
+router.put('/:id/mark-as-available', [verifyToken], mesaController.markTableAsAvailable);
 
 // Eliminar una mesa (protegido para admin)
 router.delete('/:id', [verifyToken, isAdmin], mesaController.deleteMesa);

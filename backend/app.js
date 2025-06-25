@@ -17,6 +17,7 @@ import productoRoutes from './src/routes/producto.routes.js';
 import mesaRoutes from './src/routes/mesa.routes.js';     
 import pedidoRoutes from './src/routes/pedido.routes.js';
 import facturaRoutes from './src/routes/factura.routes.js';
+import metodoPagoRoutes from './src/routes/metodo_pago.routes.js';
 import statsRoutes from './src/routes/stats.routes.js';   
 
 const app = express();
@@ -37,6 +38,7 @@ app.use('/api/productos', productoRoutes);
 app.use('/api/mesas', mesaRoutes);      
 app.use('/api/pedidos', pedidoRoutes);  
 app.use('/api/facturas', facturaRoutes);
+app.use('/api/metodos-pago', metodoPagoRoutes);
 app.use('/api/stats', statsRoutes);
 
 

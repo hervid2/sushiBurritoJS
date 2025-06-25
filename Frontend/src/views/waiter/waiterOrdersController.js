@@ -10,9 +10,9 @@ export const waiterOrdersController = () => {
     // --- Referencias al DOM ---
     const tablesGrid = document.getElementById('tables-grid');
     if (!tablesGrid) {
-        console.error("Critical Error: '#tables-grid' container not found.");
-        return; 
-    }
+         console.error("Critical Error: '#tables-grid' container not found.");
+          return; 
+        }
     const paginationContainer = document.getElementById('pagination-container');
     const orderModal = document.getElementById('order-modal');
     const orderModalTitle = document.getElementById('order-modal-title');
@@ -74,6 +74,7 @@ export const waiterOrdersController = () => {
                 <div class="table-card__actions">
                     ${table.estado === 'disponible' ? `<button class="btn btn--primary open-order-btn" data-table-id="${table.mesa_id}" data-table-name="Mesa ${table.numero_mesa}">Nuevo Pedido</button>` : ''}
                     ${table.estado === 'ocupada' && table.pedido_id ? `<button class="btn btn--info view-order-btn" data-order-id="${table.pedido_id}">Ver/Editar Pedido</button>` : ''}
+                    ${table.estado === 'limpieza' ? `<button class="btn btn--secondary mark-clean-btn" data-table-id="${table.mesa_id}">Marcar como Limpia</button>` : ''}
                 </div>
             </div>
         `).join('');
@@ -83,7 +84,6 @@ export const waiterOrdersController = () => {
     const renderOrderItems = () => {
         let total = 0;
         if (currentOrderItems.length > 0) {
-            //  El parámetro 'index' en el map  identifica cada artículo.
             orderItemsList.innerHTML = currentOrderItems.map((item, index) => {
                 const subtotal = item.valor_neto * item.cantidad;
                 total += subtotal;
@@ -120,7 +120,6 @@ export const waiterOrdersController = () => {
         tableIdHiddenInput.value = config.tableId;
         currentOrderItems = config.items || [];
         renderOrderItems();
-
         const isEditable = !config.status || config.status === 'pendiente';
         orderStatusContainer.style.display = config.status ? 'block' : 'none';
         if (config.status) {
@@ -131,15 +130,12 @@ export const waiterOrdersController = () => {
         submitOrderBtn.style.display = isEditable ? 'block' : 'none';
         addItemSection.style.display = 'none';
         if (!isEditable && config.status) showAlert(`Este pedido no es editable (estado: ${config.status}).`, 'info');
-        
         orderModal.classList.add('is-active');
     };
     
-    // --- MANEJADORES DE EVENTOS CONECTADOS A LA API ---
-    // función para manejar la eliminación de un artículo del pedido
     const handleDeleteItemFromOrder = (itemIndex) => {
-        currentOrderItems.splice(itemIndex, 1); // Elimina el artículo del array
-        renderOrderItems(); // Vuelve a renderizar la lista y el total
+        currentOrderItems.splice(itemIndex, 1);
+        renderOrderItems();
     };
 
     const handleNewOrderClick = (tableId, tableName) => openOrderModal({ title: `Nuevo Pedido para ${tableName}`, tableId, isEditable: true });
@@ -160,6 +156,17 @@ export const waiterOrdersController = () => {
         }
     };
     
+    const handleMarkAsAvailable = async (tableId) => {
+        try {
+            // Usamos 'put'  y enviamos un cuerpo vacío.
+            await api.put(`mesas/${tableId}/mark-as-available`, {});
+            showAlert('Mesa disponible de nuevo.', 'success');
+            loadInitialData();
+        } catch (error) {
+            showAlert(error.message, 'error');
+        }
+    };
+
     const handleSaveOrder = async (e) => {
         e.preventDefault();
         const orderId = orderIdInput.value;
@@ -206,16 +213,15 @@ export const waiterOrdersController = () => {
         }
     };
     
-    // --- Listeners e Inicialización ---
     const init = () => {
         tablesGrid.addEventListener('click', (e) => {
             const target = e.target.closest('button');
             if (!target) return;
             if (target.matches('.open-order-btn')) handleNewOrderClick(target.dataset.tableId, target.dataset.tableName);
             if (target.matches('.view-order-btn')) handleViewOrderClick(target.dataset.orderId);
+            if (target.matches('.mark-clean-btn')) handleMarkAsAvailable(target.dataset.tableId);
         });
         
-        // <-- Listener a la lista de artículos para delegación de eventos.
         orderItemsList.addEventListener('click', (e) => {
             if (e.target.matches('.delete-order-item-btn')) {
                 const itemIndex = parseInt(e.target.dataset.index, 10);
@@ -249,7 +255,6 @@ export const waiterOrdersController = () => {
 
         loadInitialData();
     };
-    
+
     init();
 };
-
