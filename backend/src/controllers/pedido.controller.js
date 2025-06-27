@@ -1,74 +1,93 @@
 // =================================================================
-// ARCHIVO: src/controllers/pedido.controller.js
+// ARCHIVO: src/controllers/pedido.controller.js (VERSIÓN FINAL CORREGIDA)
 // =================================================================
 
 import db from '../models/index.js';
+
+// Desestructuramos TODOS los modelos y objetos que necesitamos al principio.
 const { Pedido, DetallePedido, Mesa, Producto, sequelize } = db;
 
 // Crear un nuevo pedido con sus detalles en una transacción
 export const createPedido = async (req, res) => {
-    // El usuario_id viene del token verificado por el middleware
-    const usuario_id = req.userId;
-    const { mesa_id, items } = req.body;
+    const usuario_id = req.userId;
+    const { mesa_id, items } = req.body;
 
-    if (!mesa_id || !items || items.length === 0) {
-        return res.status(400).send({ message: "La mesa y al menos un artículo son requeridos." });
-    }
+    if (!mesa_id || !items || items.length === 0) {
+        return res.status(400).send({ message: "La mesa y al menos un artículo son requeridos." });
+    }
 
-    // Iniciar una transacción
-    const t = await db.sequelize.transaction();
+    const t = await sequelize.transaction();
+    try {
+        const pedido = await Pedido.create({
+            usuario_id,
+            mesa_id,
+            estado: 'pendiente'
+        }, { transaction: t });
 
-    try {
-        // 1. Crear el pedido principal
-        const pedido = await Pedido.create({
-            usuario_id,
-            mesa_id,
-            estado: 'pendiente'
-        }, { transaction: t });
+        const detallesPedido = items.map(item => ({
+            pedido_id: pedido.pedido_id,
+            producto_id: item.producto_id,
+            cantidad: item.cantidad,
+            notas: item.notas
+        }));
+        await DetallePedido.bulkCreate(detallesPedido, { transaction: t });
 
-        // 2. Preparar y crear los detalles del pedido
-        const detallesPedido = items.map(item => {
-            return {
-                pedido_id: pedido.pedido_id,
-                producto_id: item.producto_id,
-                cantidad: item.cantidad,
-                notas: item.notas
-            };
-        });
-        await DetallePedido.bulkCreate(detallesPedido, { transaction: t });
+        await Mesa.update({ estado: 'ocupada' }, { where: { mesa_id: mesa_id }, transaction: t });
 
-        // 3. Actualizar el estado de la mesa a 'ocupada'
-        await Mesa.update({ estado: 'ocupada' }, { where: { mesa_id: mesa_id }, transaction: t });
+        await t.commit();
+        res.status(201).send({ message: "Pedido creado exitosamente.", pedido });
 
-        // 4. Si todo va bien, confirmar la transacción
-        await t.commit();
-        res.status(201).send({ message: "Pedido creado exitosamente.", pedido });
-
-    } catch (error) {
-        // 5. Si algo falla, deshacer todos los cambios
-        await t.rollback();
-        res.status(500).send({ message: "Error al crear el pedido: " + error.message });
-    }
+    } catch (error) {
+        await t.rollback();
+        res.status(500).send({ message: "Error al crear el pedido: " + error.message });
+    }
 };
 
-// Obtener todos los pedidos (AHORA CON FILTRO POR ESTADO)
+// Obtener todos los pedidos (versión robusta final)
 export const getAllPedidos = async (req, res) => {
     try {
         const whereClause = {};
-        // Si en la URL se pasa uno o más estados
         if (req.query.estado) {
-            // Sequelize maneja automáticamente si es un string o un array de strings
             whereClause.estado = req.query.estado;
         }
 
-        const pedidos = await db.Pedido.findAll({
-            where: whereClause, // Aplica el filtro
-            include: [db.Usuario, db.Mesa], // Mantiene la info del usuario y mesa
-            order: [['fecha_creacion', 'DESC']] // Ordena por más reciente
+        const pedidosBasicos = await Pedido.findAll({
+            where: whereClause,
+            order: [['fecha_creacion', 'DESC']],
         });
-        res.status(200).send(pedidos);
+
+        if (!pedidosBasicos.length) {
+            return res.status(200).send([]);
+        }
+
+        const pedidosCompletos = await Promise.all(
+            pedidosBasicos.map(async (pedido) => {
+                const [usuario, mesa, productos] = await Promise.all([
+                    pedido.getUsuario({ attributes: ['nombre'], required: false }),
+                    pedido.getMesa({ attributes: ['numero_mesa'], required: false }),
+                    pedido.getProductos({
+                        attributes: ['nombre_producto', 'valor_neto'],
+                        through: { attributes: ['cantidad', 'notas'] }
+                    })
+                ]);
+
+                const pedidoJSON = pedido.toJSON();
+                pedidoJSON.Usuario = usuario;
+                pedidoJSON.Mesa = mesa;
+                pedidoJSON.Productos = productos.map(p => {
+                    const productoJSON = p.toJSON();
+                    productoJSON.DetallePedido = productoJSON.detalle_pedido;
+                    delete productoJSON.detalle_pedido;
+                    return productoJSON;
+                });
+
+                return pedidoJSON;
+            })
+        );
+        res.status(200).send(pedidosCompletos);
     } catch (error) {
-        res.status(500).send({ message: error.message });
+        console.error("Error en getAllPedidos (versión robusta final):", error);
+        res.status(500).send({ message: "Error al obtener los pedidos." });
     }
 };
 
@@ -79,7 +98,7 @@ export const getPedidoById = async (req, res) => {
         const pedido = await Pedido.findByPk(id, {
             include: [{
                 model: Producto,
-                through: { attributes: ['cantidad', 'notas'] } // Incluye info de la tabla pivote
+                through: { attributes: ['cantidad', 'notas'] }
             }]
         });
         if (pedido) {
@@ -108,17 +127,13 @@ export const updatePedidoStatus = async (req, res) => {
     }
 };
 
-// Actualizar los items de un pedido (por ejemplo, añadir o quitar productos)
+// Actualizar los items de un pedido
 export const updatePedidoItems = async (req, res) => {
-    const { id } = req.params; // pedido_id
-    const { items } = req.body; // Nuevo array de items
-
+    const { id } = req.params;
+    const { items } = req.body;
     const t = await sequelize.transaction();
     try {
-        // Borrar los detalles antiguos del pedido
         await DetallePedido.destroy({ where: { pedido_id: id }, transaction: t });
-
-        // Crear los nuevos detalles
         const nuevosDetalles = items.map(item => ({
             pedido_id: id,
             producto_id: item.producto_id,
@@ -126,7 +141,6 @@ export const updatePedidoItems = async (req, res) => {
             notas: item.notas
         }));
         await DetallePedido.bulkCreate(nuevosDetalles, { transaction: t });
-
         await t.commit();
         res.status(200).send({ message: "Pedido actualizado exitosamente." });
     } catch (error) {
@@ -145,13 +159,8 @@ export const deletePedido = async (req, res) => {
             await t.rollback();
             return res.status(404).send({ message: "Pedido no encontrado." });
         }
-
-        // Liberar la mesa asociada
         await Mesa.update({ estado: 'disponible' }, { where: { mesa_id: pedido.mesa_id }, transaction: t });
-
-        // Eliminar el pedido (gracias a 'ON DELETE CASCADE', los detalles se borrarán también)
         await Pedido.destroy({ where: { pedido_id: id }, transaction: t });
-
         await t.commit();
         res.status(200).send({ message: "Pedido cancelado y eliminado exitosamente." });
     } catch (error) {
