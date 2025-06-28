@@ -7,12 +7,18 @@ export default (sequelize, DataTypes) => {
     pedido_id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
     usuario_id: { type: DataTypes.INTEGER },
     mesa_id: { type: DataTypes.INTEGER },
-    estado: { type: DataTypes.ENUM('pendiente','en_preparacion','preparado','entregado','pagado','cancelado'), allowNull: false, defaultValue: 'pendiente' },
+    
+    estado: { 
+      type: DataTypes.STRING(50), 
+      allowNull: false, 
+      defaultValue: 'pendiente' 
+    },
+
   }, { 
     tableName: 'pedidos', 
-    timestamps: true, // Corregido: le decimos que SÍ maneje timestamps
-    createdAt: 'fecha_creacion', // Le decimos cuál es la columna de creación
-    updatedAt: 'fecha_modificacion' // Le decimos cuál es la columna de modificación
+    timestamps: true,
+    createdAt: 'fecha_creacion',
+    updatedAt: 'fecha_modificacion'
   });
   return Pedido;
 };

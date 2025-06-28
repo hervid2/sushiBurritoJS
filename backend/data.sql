@@ -66,7 +66,7 @@ CREATE TABLE pedidos (
   pedido_id INT AUTO_INCREMENT PRIMARY KEY,
   usuario_id INT COMMENT 'ID del mesero que tomó el pedido.',
   mesa_id INT COMMENT 'ID de la mesa asociada al pedido.',
-  estado ENUM('pendiente','en_preparacion','preparado','entregado','pagado','cancelado') NOT NULL DEFAULT 'pendiente' COMMENT 'Estado de preparación y pago del pedido',
+  estado varchar(50) NOT NULL DEFAULT 'pendiente' COMMENT 'Estado de preparación y pago del pedido',
   fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha y hora de creación del pedido.',
   fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Última fecha y hora de modificación del pedido, se actualiza automáticamente.',
   FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id),
@@ -94,16 +94,18 @@ CREATE TABLE metodos_pago (
 );
 
 -- 9. Tabla facturas: Almacena el resumen de las transacciones de pago.
--- Depende de 'pedidos'.
+-- Depende de 'pedidos' y 'metodos_pago'.
 CREATE TABLE facturas (
   factura_id INT AUTO_INCREMENT PRIMARY KEY,
   pedido_id INT UNIQUE,
+  metodo_pago_id INT,
   subtotal DECIMAL(10,2) NOT NULL,
   impuesto_total DECIMAL(10,2) NOT NULL,
   propina DECIMAL(10, 2) NULL DEFAULT 0.0,
   total DECIMAL(10,2) NOT NULL,
   fecha_factura DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (pedido_id) REFERENCES pedidos(pedido_id)
+  FOREIGN KEY (pedido_id) REFERENCES pedidos(pedido_id),
+  FOREIGN KEY (metodo_pago_id) REFERENCES metodos_pago(metodo_pago_id)
 );
 
 -- 10. Tabla para registrar los pagos de una factura, permitiendo múltiples métodos

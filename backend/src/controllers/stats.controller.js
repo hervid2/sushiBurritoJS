@@ -4,98 +4,72 @@
 // =================================================================
 
 import db from '../models/index.js';
-import nodemailer from 'nodemailer';
-import PDFDocument from 'pdfkit';
 import { Op } from 'sequelize';
-
+import PDFDocument from 'pdfkit';
+import nodemailer from 'nodemailer';
 
 const { Factura, Pedido, DetallePedido, Producto, Usuario, MetodoPago, TransaccionPago, sequelize } = db;
 
+// --- Función Auxiliar para obtener todos los datos ---
+const getStatisticsData = async (startDate, endDate) => {
+    const finalEndDate = new Date(endDate);
+    finalEndDate.setDate(finalEndDate.getDate() + 1);
+    const dateFilter = { [Op.gte]: new Date(startDate), [Op.lt]: finalEndDate };
 
-// --- Endpoint principal para obtener todas las estadísticas de la página ---
-export const getStatistics = async (req, res) => {
-    const { startDate, endDate } = req.query;
+    const [summary, productsRanking, paymentMethods] = await Promise.all([
+        Factura.findOne({
+            attributes: [[sequelize.fn('COUNT', sequelize.col('factura_id')), 'totalOrders'], [sequelize.fn('SUM', sequelize.col('total')), 'totalRevenue']],
+            where: { fecha_factura: dateFilter }, raw: true
+        }),
+        DetallePedido.findAll({
+            attributes: [[sequelize.col('Producto.nombre_producto'), 'name'], [sequelize.fn('SUM', sequelize.col('cantidad')), 'quantity']],
+            include: [{ model: Producto, attributes: [] }, { model: Pedido, attributes: [], where: { fecha_creacion: dateFilter }, required: false }],
+            group: ['Producto.nombre_producto'], order: [[sequelize.fn('SUM', sequelize.col('cantidad')), 'DESC']], limit: 10, raw: true
+        }),
+        TransaccionPago.findAll({
+            attributes: [[sequelize.col('MetodoPago.nombre_metodo'), 'name'], [sequelize.fn('SUM', sequelize.col('monto_pagado')), 'totalAmount']],
+            include: [{ model: MetodoPago, attributes: [] }, { model: Factura, attributes: [], where: { fecha_factura: dateFilter }, required: true }],
+            group: ['MetodoPago.nombre_metodo'], raw: true
+        })
+    ]);
 
-    if (!startDate || !endDate) {
-        return res.status(400).send({ message: "Se requieren fechas de inicio y fin." });
-    }
-
-    const dateFilter = {
-        fecha_factura: {
-            [Op.between]: [new Date(startDate), new Date(new Date(endDate).setHours(23, 59, 59, 999))]
-        }
+    return {
+        summary: { totalOrders: summary.totalOrders || 0, totalRevenue: parseFloat(summary.totalRevenue || 0).toFixed(2) },
+        productsRanking,
+        paymentMethods
     };
+};
 
+// --- Endpoint para la página de estadísticas ---
+export const getStatistics = async (req, res) => {
     try {
-        const [summary, productsRanking, paymentMethods] = await Promise.all([
-            // 1. Resumen de ingresos y órdenes
-            Factura.findOne({
-                attributes: [
-                    [sequelize.fn('COUNT', sequelize.col('factura_id')), 'totalOrders'],
-                    [sequelize.fn('SUM', sequelize.col('total')), 'totalRevenue']
-                ],
-                where: dateFilter,
-                raw: true
-            }),
-            // 2. Ranking de productos
-            DetallePedido.findAll({
-                attributes: [
-                    [sequelize.col('Producto.nombre_producto'), 'name'],
-                    [sequelize.fn('SUM', sequelize.col('cantidad')), 'quantity']
-                ],
-                include: [
-                    { model: Producto, attributes: [] },
-                    { model: Pedido, attributes: [], where: { fecha_creacion: { [Op.between]: [new Date(startDate), new Date(endDate)] } } }
-                ],
-                group: ['Producto.nombre_producto'],
-                order: [[sequelize.fn('SUM', sequelize.col('cantidad')), 'DESC']],
-                limit: 10,
-                raw: true
-            }),
-            // 3. NUEVO: Desglose por método de pago
-            TransaccionPago.findAll({
-                attributes: [
-                    [sequelize.col('MetodoPago.nombre_metodo'), 'name'],
-                    [sequelize.fn('SUM', sequelize.col('monto_pagado')), 'totalAmount']
-                ],
-                include: [
-                    { model: MetodoPago, attributes: [] },
-                    { model: Factura, attributes: [], where: dateFilter }
-                ],
-                group: ['MetodoPago.nombre_metodo'],
-                raw: true
-            })
-        ]);
-
-        res.status(200).send({
-            summary: {
-                totalOrders: summary.totalOrders || 0,
-                totalRevenue: parseFloat(summary.totalRevenue || 0).toFixed(2)
-            },
-            productsRanking,
-            paymentMethods
-        });
-
+        const stats = await getStatisticsData(req.query.startDate, req.query.endDate);
+        res.status(200).send(stats);
     } catch (error) {
-        console.error("Error al obtener estadísticas:", error);
-        res.status(500).send({ message: "Error interno al procesar las estadísticas." });
+        res.status(500).send({ message: "Error al procesar las estadísticas." });
     }
 };
 
+// --- Endpoint para generar y enviar el PDF ---
+export const sendStatisticsReport = async (req, res) => {
+    const { startDate, endDate } = req.body;
+    try {
+        const [stats, admin] = await Promise.all([ getStatisticsData(startDate, endDate), Usuario.findByPk(req.userId) ]);
+        if (!admin) return res.status(404).send({ message: "Usuario administrador no encontrado." });
+        const pdfBuffer = await createPdfBuffer(stats, startDate, endDate);
+        await sendEmailWithAttachment(admin.correo, pdfBuffer, startDate, endDate);
+        res.status(200).send({ message: `Reporte enviado exitosamente a ${admin.correo}` });
+    } catch (error) {
+        res.status(500).send({ message: "Error al procesar el reporte." });
+    }
+};
 
-
-// --- Lógica para obtener el resumen del dashboard ---
+// --- Endpoint para el resumen del Dashboard ---
 export const getDashboardSummary = async (req, res) => {
     try {
-        // Obtenemos todas las estadísticas en paralelo para mayor eficiencia
         const [pendingOrders, totalUsers, dailySales] = await Promise.all([
-            // 1. Contar pedidos pendientes
-            Pedido.count({ where: { estado: 'pendiente' } }),
-            
-            // 2. Contar todos los usuarios registrados
+            Pedido.count({ where: { estado: { [Op.in]: ['pendiente', 'en_preparacion'] } } }),
             Usuario.count(),
-
-            // 3. Sumar las ventas del día de hoy
             Factura.sum('total', {
                 where: {
                     fecha_factura: {
@@ -105,201 +79,86 @@ export const getDashboardSummary = async (req, res) => {
                 }
             })
         ]);
-
         res.status(200).send({
             pendingOrdersCount: pendingOrders || 0,
             registeredUsersCount: totalUsers || 0,
             dailySalesAmount: parseFloat(dailySales || 0).toFixed(2)
         });
-
     } catch (error) {
-        console.error("Error al obtener el resumen del dashboard:", error);
-        res.status(500).send({ message: "Error interno al procesar las estadísticas." });
+        res.status(500).send({ message: "Error al procesar las estadísticas del dashboard." });
     }
 };
 
-
-
-// --- Lógica para obtener la actividad reciente (pedidos y facturas) ---
+// --- Endpoint para la actividad reciente del Dashboard ---
 export const getRecentActivity = async (req, res) => {
     try {
-        // Obtenemos los 5 pedidos más recientes
-        const recentOrders = await db.Pedido.findAll({
-            limit: 5,
-            order: [['fecha_creacion', 'DESC']],
-            attributes: ['pedido_id', 'fecha_creacion']
-        });
-
-        // Obtenemos las 5 facturas más recientes
-        const recentInvoices = await db.Factura.findAll({
-            limit: 5,
-            order: [['fecha_factura', 'DESC']],
-            attributes: ['factura_id', 'pedido_id', 'fecha_factura']
-        });
-
-        // Mapeamos ambos resultados a un formato común
+        const recentOrders = await Pedido.findAll({ limit: 5, order: [['fecha_creacion', 'DESC']], attributes: ['pedido_id', 'fecha_creacion'] });
+        const recentInvoices = await Factura.findAll({ limit: 5, order: [['fecha_factura', 'DESC']], attributes: ['factura_id', 'pedido_id', 'fecha_factura'] });
         const activities = [
-            ...recentOrders.map(order => ({
-                type: 'pedido',
-                date: order.fecha_creacion,
-                description: `Nuevo pedido #${order.pedido_id} fue creado.`
-            })),
-            ...recentInvoices.map(invoice => ({
-                type: 'factura',
-                date: invoice.fecha_factura,
-                description: `Se generó la factura #${invoice.factura_id} para el pedido #${invoice.pedido_id}.`
-            }))
+            ...recentOrders.map(order => ({ type: 'pedido', date: order.fecha_creacion, description: `Nuevo pedido #${order.pedido_id} fue creado.` })),
+            ...recentInvoices.map(invoice => ({ type: 'factura', date: invoice.fecha_factura, description: `Se generó la factura #${invoice.factura_id} para el pedido #${invoice.pedido_id}.` }))
         ];
-
-        // Ordenamos la actividad combinada por fecha, de más reciente a más antiguo
-        const sortedActivities = activities
-            .sort((a, b) => new Date(b.date) - new Date(a.date))
-            .slice(0, 5); // Nos quedamos con los 5 eventos más recientes en total
-
+        const sortedActivities = activities.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
         res.status(200).send(sortedActivities);
-
     } catch (error) {
-        console.error("Error al obtener la actividad reciente:", error);
         res.status(500).send({ message: "Error interno al procesar la actividad." });
     }
 };
 
 
-
-// --- Lógica para generar y enviar el reporte ---
-export const sendStatisticsReport = async (req, res) => {
-    const { startDate, endDate } = req.body;
-    const userId = req.userId; // ID del admin logueado
-
-    if (!startDate || !endDate) {
-        return res.status(400).send({ message: "Se requieren fechas de inicio y fin." });
-    }
-
-    try {
-        // 1. Obtener los datos estadísticos
-        const stats = await getStatisticsData(startDate, endDate);
-        
-        // 2. Obtener el email del admin
-        const admin = await Usuario.findByPk(userId);
-        if (!admin) {
-            return res.status(404).send({ message: "Usuario administrador no encontrado." });
-        }
-
-        // 3. Generar el PDF en memoria
-        const pdfBuffer = await createPdfBuffer(stats, startDate, endDate);
-
-        // 4. Enviar el correo con el PDF adjunto
-        await sendEmailWithAttachment(admin.correo, pdfBuffer, startDate, endDate);
-
-        res.status(200).send({ message: `Reporte enviado exitosamente a ${admin.correo}` });
-
-    } catch (error) {
-        console.error("Error al generar o enviar el reporte:", error);
-        res.status(500).send({ message: "Error interno al procesar el reporte." });
-    }
-};
-
-
-// --- Funciones auxiliares ---
-async function getStatisticsData(startDate, endDate) {
-    // Calcular total de pedidos e ingresos
-    const summary = await Factura.findAll({
-        attributes: [
-            [sequelize.fn('COUNT', sequelize.col('factura_id')), 'totalOrders'],
-            [sequelize.fn('SUM', sequelize.col('total')), 'totalRevenue']
-        ],
-        where: {
-            fecha_factura: {
-                [Op.between]: [new Date(startDate), new Date(endDate)]
-            }
-        },
-        raw: true
-    });
-
-    // Calcular ranking de productos
-    const ranking = await DetallePedido.findAll({
-        attributes: [
-            [sequelize.col('Producto.nombre_producto'), 'name'],
-            [sequelize.fn('SUM', sequelize.col('cantidad')), 'quantity']
-        ],
-        include: [{
-            model: Producto,
-            attributes: []
-        }, {
-            model: Pedido,
-            attributes: [],
-            where: {
-                fecha_creacion: {
-                    [Op.between]: [new Date(startDate), new Date(endDate)]
-                }
-            }
-        }],
-        group: ['Producto.nombre_producto'],
-        order: [[sequelize.fn('SUM', sequelize.col('cantidad')), 'DESC']],
-        raw: true
-    });
-
-    return {
-        summary: summary[0],
-        ranking: ranking
-    };
-}
-
-
-// --- Función para crear el PDF en memoria ---
+// --- Funciones Auxiliares para PDF y Correo ---
 async function createPdfBuffer(stats, startDate, endDate) {
     return new Promise((resolve) => {
-        const doc = new PDFDocument({ margin: 50 });
+        const doc = new PDFDocument({ margin: 50, size: 'A4' });
         const buffers = [];
-
         doc.on('data', buffers.push.bind(buffers));
-        doc.on('end', () => {
-            resolve(Buffer.concat(buffers));
-        });
+        doc.on('end', () => resolve(Buffer.concat(buffers)));
 
-        // Contenido del PDF
-        doc.fontSize(20).text('Reporte de Estadísticas - Sushi Burrito', { align: 'center' });
+        doc.fontSize(18).text('Reporte de Estadísticas - Sushi Burrito', { align: 'center' });
         doc.fontSize(12).text(`Periodo: ${startDate} al ${endDate}`, { align: 'center' });
         doc.moveDown(2);
 
-        // Resumen
-        doc.fontSize(16).text('Resumen General', { underline: true });
+        doc.fontSize(14).text('Resumen General', { underline: true });
         doc.moveDown();
-        doc.fontSize(12).text(`Total de Pedidos: ${stats.summary.totalOrders || 0}`);
-        doc.text(`Ingresos Totales: $${parseFloat(stats.summary.totalRevenue || 0).toFixed(2)}`);
+        doc.fontSize(11).text(`Total de Pedidos Facturados: ${stats.summary.totalOrders}`);
+        doc.text(`Ingresos Totales: $${stats.summary.totalRevenue}`);
         doc.moveDown(2);
 
-        // Ranking
-        doc.fontSize(16).text('Ranking de Productos Vendidos', { underline: true });
+        doc.fontSize(14).text('Desglose por Método de Pago', { underline: true });
         doc.moveDown();
-        
-        // Encabezados de la tabla
+        if (stats.paymentMethods.length > 0) {
+            stats.paymentMethods.forEach(method => {
+                doc.fontSize(11).text(`${method.name}: $${parseFloat(method.totalAmount).toFixed(2)}`);
+            });
+        } else {
+            doc.fontSize(11).text('No hay datos de pago para este período.');
+        }
+        doc.moveDown(2);
+
+        doc.fontSize(14).text('Ranking de Productos', { underline: true });
+        doc.moveDown();
         const tableTop = doc.y;
-        doc.fontSize(10).text('Producto', 50, tableTop, { width: 300, continued: true }).text('Cantidad', 370, tableTop);
-        doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+        doc.font('Helvetica-Bold').fontSize(11).text('Producto', 50, tableTop).text('Cantidad Vendida', 400, tableTop, { align: 'right' });
+        doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke().moveDown();
+        doc.font('Helvetica');
         
-        // Filas de la tabla
-        stats.ranking.forEach(item => {
-            doc.moveDown();
-            const y = doc.y;
-            doc.fontSize(10).text(item.name, 50, y, { width: 300, continued: true }).text(item.quantity, 370, y);
-        });
+        if (stats.productsRanking.length > 0) {
+            stats.productsRanking.forEach(item => {
+                doc.fontSize(11).text(item.name, { width: 350 }).moveUp().text(item.quantity.toString(), 400, doc.y, { align: 'right' });
+            });
+        } else {
+            doc.fontSize(11).text('No hay ranking para este período.');
+        }
 
         doc.end();
     });
 }
 
-
-// --- Función para enviar el correo con el PDF adjunto ---
 async function sendEmailWithAttachment(recipientEmail, pdfBuffer, startDate, endDate) {
     const transporter = nodemailer.createTransport({
         service: process.env.EMAIL_SERVICE,
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASSWORD
-        }
+        auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASSWORD }
     });
-
     await transporter.sendMail({
         from: `"Reportes Sushi Burrito" <${process.env.EMAIL_USER}>`,
         to: recipientEmail,

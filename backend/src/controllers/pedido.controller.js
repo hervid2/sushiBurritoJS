@@ -75,12 +75,9 @@ export const getAllPedidos = async (req, res) => {
               const pedidoJSON = pedido.toJSON();
               pedidoJSON.Usuario = usuario;
               pedidoJSON.Mesa = mesa;
-              pedidoJSON.Productos = productos.map(p => {
-                  const productoJSON = p.toJSON();
-                  productoJSON.DetallePedido = productoJSON.detalle_pedido;
-                  delete productoJSON.detalle_pedido;
-                  return productoJSON;
-              });
+              // CAMBIO: Simplemente asignamos los productos directamente.
+              // Sequelize ya los devuelve en el formato correcto.
+              pedidoJSON.Productos = productos; 
 
               return pedidoJSON;
           })
@@ -91,6 +88,7 @@ export const getAllPedidos = async (req, res) => {
       res.status(500).send({ message: "Error al obtener los pedidos." });
   }
 };
+
 
 
 // Obtener un pedido por ID con sus productos

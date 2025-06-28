@@ -38,7 +38,60 @@ export const waiterOrdersController = () => {
     // --- Estado ---
     let allTables = [], allMenuItems = [], allCategories = [], currentOrderItems = [];
     let currentPage = 1;
-    const itemsPerPage = 6;
+  const itemsPerPage = 6;
+        
+    // --- Lógica de Carga de Datos ---
+    const loadInitialData = async () => {
+        tablesGrid.innerHTML = '<div class="loading-message">Cargando...</div>';
+        try {
+            // Obtener todos los datos necesarios en paralelo
+            const [tablesData, allOrders, menuData, categoriesData] = await Promise.all([
+                api.get('mesas'),
+                api.get('pedidos'), // Obtenemos TODOS los pedidos para saber sus estados
+                api.get('productos'),
+                api.get('categorias')
+            ]);
+            
+            // Crear un mapa para encontrar fácilmente el último pedido de cada mesa
+            const latestOrderForTable = new Map();
+            allOrders.forEach(order => {
+                // Guardar solo el pedido más reciente para cada mesa
+                if (!latestOrderForTable.has(order.mesa_id) || new Date(order.fecha_creacion) > new Date(latestOrderForTable.get(order.mesa_id).fecha_creacion)) {
+                    latestOrderForTable.set(order.mesa_id, order);
+                }
+            });
+            
+            // Procesar las mesas con la lógica corregida
+            allTables = tablesData.map(table => {
+                const orderInfo = latestOrderForTable.get(table.mesa_id);
+                let finalState = table.estado;
+                let pedidoIdToShow = null;
+
+                // Si la mesa está ocupada, verificamos el estado de su último pedido
+                if (table.estado === 'ocupada' && orderInfo) {
+                    pedidoIdToShow = orderInfo.pedido_id;
+                    // Si el último pedido está pagado o cancelado, forzamos el estado a 'limpieza' en la interfaz
+                    if (orderInfo.estado === 'pagado' || orderInfo.estado === 'cancelado') {
+                        finalState = 'limpieza';
+                    }
+                }
+                
+                return { ...table, estado: finalState, pedido_id: pedidoIdToShow };
+            });
+
+            allMenuItems = menuData;
+            allCategories = categoriesData;
+            
+            populateCategoryFilter();
+            populateItemSelect();
+            currentPage = 1;
+            renderPage();
+        } catch (error) {
+            console.error(error);
+            tablesGrid.innerHTML = '<div class="error-message">Error al cargar datos.</div>';
+        }
+    };
+
 
     // --- Lógica de Renderizado ---
     const renderPagination = () => {
@@ -191,25 +244,6 @@ export const waiterOrdersController = () => {
             await loadInitialData();
         } catch(error) { 
             showAlert(error.message, 'error');
-        }
-    };
-    
-    const loadInitialData = async () => {
-        tablesGrid.innerHTML = '<div class="loading-message">Cargando...</div>';
-        try {
-            const [tablesData, menuData, categoriesData] = await Promise.all([api.get('mesas'), api.get('productos'), api.get('categorias')]);
-            const activeOrders = await api.get('pedidos?estado=pendiente&estado=en_preparacion&estado=preparado&estado=entregado');
-            const orderMap = new Map(activeOrders.map(order => [order.mesa_id, order.pedido_id]));
-            allTables = tablesData.map(table => ({ ...table, pedido_id: orderMap.get(table.mesa_id) || null }));
-            allMenuItems = menuData;
-            allCategories = categoriesData;
-            populateCategoryFilter();
-            populateItemSelect();
-            currentPage = 1;
-            renderPage();
-        } catch (error) {
-            console.error(error);
-            tablesGrid.innerHTML = '<div class="error-message">Error al cargar datos.</div>';
         }
     };
     
