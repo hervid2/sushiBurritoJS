@@ -43,53 +43,55 @@ export const createPedido = async (req, res) => {
     }
 };
 
+
 // Obtener todos los pedidos (versión robusta final)
 export const getAllPedidos = async (req, res) => {
-    try {
-        const whereClause = {};
-        if (req.query.estado) {
-            whereClause.estado = req.query.estado;
-        }
+  try {
+      const whereClause = {};
+      if (req.query.estado) {
+          whereClause.estado = req.query.estado;
+      }
 
-        const pedidosBasicos = await Pedido.findAll({
-            where: whereClause,
-            order: [['fecha_creacion', 'DESC']],
-        });
+      const pedidosBasicos = await db.Pedido.findAll({
+          where: whereClause,
+          order: [['fecha_creacion', 'DESC']],
+      });
 
-        if (!pedidosBasicos.length) {
-            return res.status(200).send([]);
-        }
+      if (!pedidosBasicos.length) {
+          return res.status(200).send([]);
+      }
 
-        const pedidosCompletos = await Promise.all(
-            pedidosBasicos.map(async (pedido) => {
-                const [usuario, mesa, productos] = await Promise.all([
-                    pedido.getUsuario({ attributes: ['nombre'], required: false }),
-                    pedido.getMesa({ attributes: ['numero_mesa'], required: false }),
-                    pedido.getProductos({
-                        attributes: ['nombre_producto', 'valor_neto'],
-                        through: { attributes: ['cantidad', 'notas'] }
-                    })
-                ]);
+      const pedidosCompletos = await Promise.all(
+          pedidosBasicos.map(async (pedido) => {
+              const [usuario, mesa, productos] = await Promise.all([
+                  pedido.getUsuario({ attributes: ['nombre'], required: false }),
+                  pedido.getMesa({ attributes: ['numero_mesa'], required: false }),
+                  pedido.getProductos({
+                      attributes: ['nombre_producto', 'valor_neto'],
+                      through: { attributes: ['cantidad', 'notas'] }
+                  })
+              ]);
 
-                const pedidoJSON = pedido.toJSON();
-                pedidoJSON.Usuario = usuario;
-                pedidoJSON.Mesa = mesa;
-                pedidoJSON.Productos = productos.map(p => {
-                    const productoJSON = p.toJSON();
-                    productoJSON.DetallePedido = productoJSON.detalle_pedido;
-                    delete productoJSON.detalle_pedido;
-                    return productoJSON;
-                });
+              const pedidoJSON = pedido.toJSON();
+              pedidoJSON.Usuario = usuario;
+              pedidoJSON.Mesa = mesa;
+              pedidoJSON.Productos = productos.map(p => {
+                  const productoJSON = p.toJSON();
+                  productoJSON.DetallePedido = productoJSON.detalle_pedido;
+                  delete productoJSON.detalle_pedido;
+                  return productoJSON;
+              });
 
-                return pedidoJSON;
-            })
-        );
-        res.status(200).send(pedidosCompletos);
-    } catch (error) {
-        console.error("Error en getAllPedidos (versión robusta final):", error);
-        res.status(500).send({ message: "Error al obtener los pedidos." });
-    }
+              return pedidoJSON;
+          })
+      );
+      res.status(200).send(pedidosCompletos);
+  } catch (error) {
+      console.error("Error en getAllPedidos (versión robusta final):", error);
+      res.status(500).send({ message: "Error al obtener los pedidos." });
+  }
 };
+
 
 // Obtener un pedido por ID con sus productos
 export const getPedidoById = async (req, res) => {

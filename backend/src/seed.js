@@ -32,25 +32,25 @@
 //     // --- Crear Usuario Administrador ---
 //     // Usamos findOrCreate para no crear el admin si ya existe
 //     const [adminUser, adminUserCreated] = await db.Usuario.findOrCreate({
-//       where: { correo: 'correo en mención' },
+//       where: { correo: 'hervid2@hotmail.com' },
 //       defaults: {
-//         nombre: 'nombre en mención',
-//         correo: 'correo en mención',
+//         nombre: 'Marcelo Bielsa',
+//         correo: 'hervid2@hotmail.com',
 //         // IMPORTANTE: Pasamos la contraseña en texto plano.
 //         // El hook 'beforeCreate' del modelo se encargará de hashearla.
-//         contraseña: 'contraseña en mención', 
+//         contraseña: 'AdminPassword123!', 
 //         rol_id: adminRole.rol_id
 //       }
 //     });
 
 //     if (adminUserCreated) {
 //       console.log('============================================================');
-//       console.log('¡Usuario Administrador nombre en mención creado exitosamente!');
-//       console.log(`Correo: correo en mención`);
-//       console.log(`Contraseña: contraseña en mención`);
+//       console.log('¡Usuario Administrador Marcelo Bielsa creado exitosamente!');
+//       console.log(`hervid2@hotmail.com`);
+//       console.log(`Contraseña: AdminPassword123!`);
 //       console.log('============================================================');
 //     } else {
-//       console.log('El usuario administrador "correo en mención" ya existía.');
+//       console.log('El usuario administrador "hervid2@hotmail.com" ya existía.');
 //     }
 
 //   } catch (error) {
