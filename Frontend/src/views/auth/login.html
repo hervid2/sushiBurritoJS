@@ -8,14 +8,14 @@
     <div class="auth-layout__form">
         <div class="auth-card">
             <h2 class="auth-card__title">Iniciar Sesión</h2>
-            <form id="login-form">
+            <form id="login-form" novalidate>
                 <div class="form-group">
                     <label for="login-email" class="form-label">Correo Electrónico:</label>
-                    <input type="email" id="login-email" class="form-control" placeholder="tu@correo.com" required>
+                    <input type="email" id="login-email" class="form-control" placeholder="tu@correo.com">
                 </div>
                 <div class="form-group">
                     <label for="login-password" class="form-label">Contraseña:</label>
-                    <input type="password" id="login-password" class="form-control" placeholder="Tu contraseña" required>
+                    <input type="password" id="login-password" class="form-control" placeholder="Tu contraseña">
                 </div>
                 <button type="submit" class="btn btn--primary btn--block">Entrar</button>
             </form>

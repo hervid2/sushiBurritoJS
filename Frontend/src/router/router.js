@@ -84,97 +84,108 @@ const updateSharedUI = (isAuthenticated, userRole, route) => {
 
 // --- LÓGICA PRINCIPAL DEL ROUTER ---
 export const loadContent = async () => {
-    let path = window.location.hash.substring(1) || "/";
-    if (path.startsWith('/')) {
-        path = path.substring(1);
-    }
-    path = path.split('?')[0];
+  // Se obtiene el path completo desde el hash, ej: "reset-password?token=xyz"
+  const fullHash = (window.location.hash.substring(1) || "/").startsWith('/')
+      ? window.location.hash.substring(2)
+      : window.location.hash.substring(1);
 
-    // --- Autenticación y Rol ---
-    let isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-    let userRole = localStorage.getItem('userRole');
+  // Se separa la ruta de los parámetros de consulta
+  const pathParts = fullHash.split('?');
+  const path = pathParts[0] || "/"; // La ruta limpia, ej: "reset-password"
+  const queryString = pathParts[1] || ""; // Los parámetros, ej: "token=xyz"
 
-    // --- LÓGICA DE REDIRECCIÓN Y SEGURIDAD ---
-    if (path === "kitchen/orders") {
-        navigateTo('kitchen/orders/pending');
-        return;
-    }
-    if (path === "" || path === "/") {
-        navigateTo(isAuthenticated ? 'admin/dashboard' : 'login');
-        return;
-    }
+  // Se crea un objeto con los parámetros
+  const urlParams = new URLSearchParams(queryString);
+  const params = Object.fromEntries(urlParams.entries());
 
-    const route = routes[path];
+  // 2. AUTENTICACIÓN Y ROL 
+  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  const userRole = localStorage.getItem('userRole');
 
-    if (!route) {
-        navigateTo('404');
-        return;
-    }
+  // LÓGICA DE REDIRECCIÓN Y SEGURIDAD 
+  if (path === "" || path === "/") {
+      navigateTo(isAuthenticated ? 'admin/dashboard' : 'login');
+      return;
+  }
 
-    if (route.public && isAuthenticated) {
-        navigateTo('admin/dashboard');
-        return;
-    }
+  if (path === "kitchen/orders") {
+      navigateTo('kitchen/orders/pending');
+      return;
+  }
 
-    if (!route.public && !isAuthenticated) {
-        navigateTo('login');
-        return;
-    }
+  const route = routes[path];
 
-    if (route.roles && !route.roles.includes(userRole)) {
-        showAlert('No tienes permiso para acceder a esta página.', 'error');
-        const defaultRoutes = {
-            admin: 'admin/dashboard',
-            waiter: 'waiter/orders',
-            kitchen: 'kitchen/orders/pending'
-        };
-        navigateTo(defaultRoutes[userRole] || 'login');
-        return;
-    }
+  if (!route) {
+      navigateTo('404');
+      return;
+  }
+  
+  if (route.public && isAuthenticated && path !== 'reset-password') {
+      navigateTo('admin/dashboard');
+      return;
+  }
 
-    // --- RENDERIZADO DE VISTA Y COMPONENTES ---
-    try {
-        const appContainer = document.getElementById('app');
-        if (!appContainer) throw new Error("#app container not found!");
+  if (!route.public && !isAuthenticated) {
+      navigateTo('login');
+      return;
+  }
 
-        const response = await fetch(`/src/views/${route.template}`);
-        if (!response.ok) throw new Error(`Template not found: ${route.template}`);
-        appContainer.innerHTML = await response.text();
+  if (route.roles && !route.roles.includes(userRole)) {
+      showAlert('No tienes permiso para acceder a esta página.', 'error');
+      const defaultRoutes = {
+          administrador: 'admin/dashboard',
+          mesero: 'waiter/orders',
+          cocinero: 'kitchen/orders/pending'
+      };
+      navigateTo(defaultRoutes[userRole] || 'login');
+      return;
+  }
 
-        document.title = route.title;
+  // RENDERIZADO DE VISTA Y COMPONENTES 
+  try {
+      const appContainer = document.getElementById('app');
+      if (!appContainer) throw new Error("#app container not found!");
 
-        updateSharedUI(isAuthenticated, userRole, route);
+      const response = await fetch(`/src/views/${route.template}`);
+      if (!response.ok) throw new Error(`Template not found: ${route.template}`);
+      appContainer.innerHTML = await response.text();
 
-        if (route.controller) {
-            const queryString = window.location.hash.split('?')[1] || '';
-            const urlParams = new URLSearchParams(queryString);
-            const params = Object.fromEntries(urlParams.entries());
-            params.routeInfo = route;
+      document.title = route.title;
+      updateSharedUI(isAuthenticated, userRole, route);
 
-            route.controller(params); 
-        }
-    } catch (error) {
-        console.error("Error loading content:", error);
-        navigateTo('404');
-    }
+      if (route.controller) {
+          // Se le pasa al controlador los parámetros  ya procesados
+          params.routeInfo = route;
+          route.controller(params);
+      }
+  } catch (error) {
+      console.error("Error loading content:", error);
+      navigateTo('404');
+  }
 };
 
 // --- PUNTO DE ENTRADA DE LA APLICACIÓN ---
 const initializeApp = async () => {
-    const headerContainer = document.getElementById('header-container');
-    const navContainer = document.getElementById('navigation-container');
-    const footerContainer = document.getElementById('footer-container');
-    try {
-        headerContainer.innerHTML = await (await fetch('/src/views/shared/header.html')).text();
-        navContainer.innerHTML = await (await fetch('/src/views/shared/navigation.html')).text();
-        footerContainer.innerHTML = await (await fetch('/src/views/shared/footer.html')).text();
+  const headerContainer = document.getElementById('header-container');
+  const navContainer = document.getElementById('navigation-container');
+  const footerContainer = document.getElementById('footer-container');
+  
+  try {
+      // Carga los componentes compartidos
+      headerContainer.innerHTML = await (await fetch('/src/views/shared/header.html')).text();
+      navContainer.innerHTML = await (await fetch('/src/views/shared/navigation.html')).text();
+      footerContainer.innerHTML = await (await fetch('/src/views/shared/footer.html')).text();
 
-        window.addEventListener('hashchange', loadContent);
-        window.addEventListener('load', loadContent);
-    } catch (error) {
-        console.error("Failed to initialize shared components:", error);
-        document.body.innerHTML = "Error crítico al cargar la aplicación.";
-    }
+      // Escucha de los cambios en el hash para la navegación DENTRO de la app
+      window.addEventListener('hashchange', loadContent);
+      
+      // Ejecución de la carga de contenido INMEDIATAMENTE en la visita inicial.
+      loadContent();
+
+  } catch (error) {
+      console.error("Fallo crítico al inicializar los componentes de la aplicación:", error);
+      document.body.innerHTML = "Error crítico al cargar la aplicación. Por favor, intente de nuevo más tarde.";
+  }
 };
 
 initializeApp();

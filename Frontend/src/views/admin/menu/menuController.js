@@ -18,27 +18,45 @@ export const menuController = () => {
     const addCategoryForm = document.getElementById('add-category-form');
     const addTableForm = document.getElementById('add-table-form');
     const itemCategorySelect = document.getElementById('item-category');
+    const menuItemsPagination = document.getElementById('menu-items-pagination');
+    const categoriesPagination = document.getElementById('categories-pagination');
+    const tablesPagination = document.getElementById('tables-pagination');
 
     // --- Estado ---
-    const categoryColorMap = {}; // Almacena los colores generados para cada categoría
-    let categoryNameMap = new Map(); // <-- NUEVO: Almacena ID -> Nombre de la categoría
+    const categoryColorMap = {};
+    let categoryNameMap = new Map();
+    let allMenuItems = [], allCategories = [], allTables = [];
+    let currentPage = 1, currentCategoriesPage = 1, currentTablesPage = 1;
+    const itemsPerPage = 5; // Cantidad de ítems por página para todas las tablas
 
-    // --- Lógica de Colores ---
-    const getCategoryStyle = (categoryName) => {
-        if (!categoryColorMap[categoryName]) {
-            const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
-            categoryColorMap[categoryName] = randomColor;
+    // --- Lógica de Renderizado (Paginación) ---
+    const renderPagination = (container, totalItems, currentPage, pageChangeCallback) => {
+        if (!container) return;
+        container.innerHTML = '';
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        if (totalPages <= 1) return;
+
+        let buttonsHTML = '<ul>';
+        for (let i = 1; i <= totalPages; i++) {
+            buttonsHTML += `<li><button class="pagination-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button></li>`;
         }
-        return `style="background-color: ${categoryColorMap[categoryName]}"`;
-    };
+        buttonsHTML += '</ul>';
+        container.innerHTML = buttonsHTML;
 
-    // --- Lógica de Renderizado ---
-    const renderMenuItems = (items) => {
-        menuItemsTableBody.innerHTML = items.map(item => {
-            // CAMBIO CLAVE: Usamos el mapa para encontrar el nombre de la categoría a partir del ID del producto
+        container.querySelectorAll('.pagination-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                pageChangeCallback(parseInt(e.target.dataset.page));
+            });
+        });
+    };
+    
+    // --- Lógica de Renderizado (Tablas) ---
+    const renderMenuItems = () => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const pageItems = allMenuItems.slice(startIndex, startIndex + itemsPerPage);
+        menuItemsTableBody.innerHTML = pageItems.map(item => {
             const categoryName = categoryNameMap.get(item.categoria_id) || 'Sin categoría';
-            const style = categoryName !== 'Sin categoría' ? getCategoryStyle(categoryName) : 'style="background-color: #6c757d;"';
-            
+            const style = getCategoryStyle(categoryName);
             return `
                 <tr>
                     <td>${item.nombre_producto}</td>
@@ -52,24 +70,32 @@ export const menuController = () => {
         }).join('');
         menuItemsTableBody.querySelectorAll('.edit-item-btn').forEach(btn => btn.addEventListener('click', (e) => handleEditClick(e.currentTarget.dataset.id)));
         menuItemsTableBody.querySelectorAll('.delete-item-btn').forEach(btn => btn.addEventListener('click', (e) => handleDeleteClick(e.currentTarget.dataset.id, e.currentTarget.dataset.name, 'productos')));
+        renderPagination(menuItemsPagination, allMenuItems.length, currentPage, (page) => {
+            currentPage = page;
+            renderMenuItems();
+        });
     };
 
-    const renderCategories = (categories) => {
-        // CAMBIO CLAVE: Llenamos el mapa de nombres de categorías al renderizar
-        categoryNameMap = new Map(categories.map(cat => [cat.categoria_id, cat.nombre]));
-
-        categoriesTableBody.innerHTML = categories.map(cat => `
+    const renderCategories = () => {
+        const startIndex = (currentCategoriesPage - 1) * itemsPerPage;
+        const pageItems = allCategories.slice(startIndex, startIndex + itemsPerPage);
+        categoriesTableBody.innerHTML = pageItems.map(cat => `
             <tr>
                 <td><span class="category-badge" ${getCategoryStyle(cat.nombre)}>${cat.nombre}</span></td>
                 <td class="table-actions"><button class="btn btn--danger btn--small delete-category-btn" data-id="${cat.categoria_id}" data-name="${cat.nombre}">Eliminar</button></td>
             </tr>
         `).join('');
-        itemCategorySelect.innerHTML = `<option value="" disabled selected>Seleccione...</option>` + categories.map(c => `<option value="${c.categoria_id}">${c.nombre}</option>`).join('');
         categoriesTableBody.querySelectorAll('.delete-category-btn').forEach(btn => btn.addEventListener('click', (e) => handleDeleteClick(e.currentTarget.dataset.id, e.currentTarget.dataset.name, 'categorias')));
+        renderPagination(categoriesPagination, allCategories.length, currentCategoriesPage, (page) => {
+            currentCategoriesPage = page;
+            renderCategories();
+        });
     };
 
-    const renderTables = (tables) => {
-        tablesTableBody.innerHTML = tables.map(table => `
+    const renderTables = () => {
+        const startIndex = (currentTablesPage - 1) * itemsPerPage;
+        const pageItems = allTables.slice(startIndex, startIndex + itemsPerPage);
+        tablesTableBody.innerHTML = pageItems.map(table => `
             <tr>
                 <td>${table.numero_mesa}</td>
                 <td>${table.estado}</td>
@@ -77,21 +103,46 @@ export const menuController = () => {
             </tr>
         `).join('');
         tablesTableBody.querySelectorAll('.delete-table-btn').forEach(btn => btn.addEventListener('click', (e) => handleDeleteClick(e.currentTarget.dataset.id, e.currentTarget.dataset.name, 'mesas')));
+        renderPagination(tablesPagination, allTables.length, currentTablesPage, (page) => {
+            currentTablesPage = page;
+            renderTables();
+        });
     };
 
-    // --- Carga de Datos ---
+    // --- Funciones Auxiliares y de Carga ---
+    const getCategoryStyle = (categoryName) => {
+        if (!categoryColorMap[categoryName]) {
+            const hash = categoryName.split('').reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0);
+            const color = `hsl(${hash % 360}, 70%, 50%)`;
+            categoryColorMap[categoryName] = color;
+        }
+        return `style="background-color: ${categoryColorMap[categoryName]}"`;
+    };
+
     const loadAllData = async () => {
         try {
             const [menuData, categoryData, tableData] = await Promise.all([api.get('productos'), api.get('categorias'), api.get('mesas')]);
-            renderCategories(categoryData);
-            renderMenuItems(menuData);
-            renderTables(tableData);
+            
+            allMenuItems = menuData;
+            allCategories = categoryData;
+            allTables = tableData;
+
+            currentPage = 1;
+            currentCategoriesPage = 1;
+            currentTablesPage = 1;
+
+            categoryNameMap = new Map(allCategories.map(cat => [cat.categoria_id, cat.nombre]));
+            itemCategorySelect.innerHTML = `<option value="" disabled selected>Seleccione...</option>` + allCategories.map(c => `<option value="${c.categoria_id}">${c.nombre}</option>`).join('');
+
+            renderMenuItems();
+            renderCategories();
+            renderTables();
         } catch (error) {
             showAlert(error.message, 'error');
         }
     };
 
-    // --- (El resto de las funciones de manejo de eventos permanecen sin cambios) ---
+    // --- Manejadores de Eventos ---
     const handleSaveMenuItem = async (e) => {
         e.preventDefault();
         const id = document.getElementById('menu-item-id').value;
@@ -135,7 +186,7 @@ export const menuController = () => {
             showAlert(`${name} eliminado exitosamente.`, 'success');
             loadAllData();
         } catch (error) {
-            if (error) showAlert(error.message, 'error');
+            if (error && error.message) showAlert(error.message, 'error');
         }
     };
 
@@ -165,6 +216,7 @@ export const menuController = () => {
         }
     };
 
+    // --- Inicialización ---
     const init = () => {
         document.getElementById('add-menu-item-btn').addEventListener('click', () => {
             menuItemForm.reset();

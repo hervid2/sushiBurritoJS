@@ -1,24 +1,15 @@
-// src/views/auth/forgotPasswordController.js (COMPLETO Y ACTUALIZADO)
+// src/views/auth/forgotPasswordController.js 
 
 import { showAlert } from '../../helpers/alerts.js';
-import { navigateTo } from '../../router/router.js';
+import { api } from '../../helpers/solicitudes.js'; // Importar el helper de API
 import { validateEmail } from '../../helpers/auth.js';
+import { navigateTo } from '../../router/router.js';
 
 export const forgotPasswordController = () => {
     const forgotPasswordForm = document.getElementById('forgot-password-form');
     const emailInput = document.getElementById('forgot-password-email');
+    const submitButton = forgotPasswordForm.querySelector('button[type="submit"]');
 
-    const requestPasswordReset = async (email) => {
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                if (['test@example.com', 'admin@example.com'].includes(email)) {
-                    resolve({ success: true, message: `Se ha enviado un enlace de recuperación a ${email}.` });
-                } else {
-                    reject(new Error('El email no está registrado.'));
-                }
-            }, 700);
-        });
-    };
 
     const handleForgotPasswordSubmit = async (event) => {
         event.preventDefault();
@@ -29,11 +20,27 @@ export const forgotPasswordController = () => {
             return;
         }
 
+        const originalButtonText = submitButton.innerHTML;
+        submitButton.disabled = true;
+        submitButton.innerHTML = `<span class="spinner"></span> Enviando...`;
+
         try {
-            const result = await requestPasswordReset(email);
-            showAlert(result.message, 'success');
+            // Llamar a la API real del backend.
+            // Se usa 'publicPost' porque esta ruta no necesita un token de autenticación.
+            await api.publicPost('auth/forgot-password', { correo: email });
+
+            // Mostrar siempre un mensaje genérico para no revelar si el correo existe o no (seguridad).
+            showAlert('Si tu correo está registrado, recibirás un enlace para restablecer tu contraseña.', 'success');
+            
+            // Deshabilitamos los campos para evitar reenvíos.
+            emailInput.disabled = true;
+            submitButton.innerHTML = 'Enlace Enviado';
+            
         } catch (error) {
-            showAlert(error.message || 'Error al procesar la solicitud.', 'error');
+            // Por seguridad, incluso si la API falla, mostramos el mismo mensaje genérico.
+            // Un atacante no debe saber si el servidor falló porque el correo no existe o por otra razón.
+            showAlert('Si tu correo está registrado, recibirás un enlace para restablecer tu contraseña.', 'success');
+            console.error("Ocurrió un error en la solicitud, pero se muestra un mensaje genérico por seguridad:", error);
         }
     };
 

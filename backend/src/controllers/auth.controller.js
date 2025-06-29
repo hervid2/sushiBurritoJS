@@ -108,7 +108,7 @@ export const resetPassword = async (req, res) => {
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
         // Actualizar la contraseña del usuario en la base de datos
-        const updated = await Usuario.update(
+        const updated = await db.Usuario.update(
             { contraseña: hashedPassword },
             { where: { usuario_id: decoded.id } }
         );

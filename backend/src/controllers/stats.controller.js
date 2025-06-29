@@ -7,6 +7,7 @@ import db from '../models/index.js';
 import { Op } from 'sequelize';
 import PDFDocument from 'pdfkit';
 import nodemailer from 'nodemailer';
+import fs from 'fs'; // Importar 'fs' para leer la imagen del logo
 
 const { Factura, Pedido, DetallePedido, Producto, Usuario, MetodoPago, TransaccionPago, sequelize } = db;
 
@@ -39,6 +40,92 @@ const getStatisticsData = async (startDate, endDate) => {
         paymentMethods
     };
 };
+
+// --- Función Auxiliar para dibujar tablas en el PDF ---
+function drawTable(doc, startY, title, headers, data) {
+    let currentY = startY;
+    const tableTop = startY + 25;
+    const rowHeight = 25;
+    const colWidths = [350, 150]; // Ancho para las dos columnas
+    const tableRight = 50 + colWidths[0] + colWidths[1];
+
+    doc.fontSize(14).font('Helvetica-Bold').text(title, 50, currentY);
+    currentY += 35;
+
+    // Dibujar encabezado
+    doc.font('Helvetica-Bold');
+    headers.forEach((header, i) => {
+        doc.text(header, 50 + (i * colWidths[i-1] || 0), currentY, { width: colWidths[i], align: 'left' });
+    });
+    doc.moveTo(50, currentY + rowHeight - 5).lineTo(tableRight, currentY + rowHeight - 5).stroke();
+    currentY += rowHeight;
+
+    // Dibujar filas de datos
+    doc.font('Helvetica');
+    data.forEach(row => {
+        row.forEach((cell, i) => {
+            doc.text(String(cell), 50 + (i * colWidths[i-1] || 0), currentY, { width: colWidths[i], align: 'left' });
+        });
+        doc.moveTo(50, currentY + rowHeight - 5).lineTo(tableRight, currentY + rowHeight - 5).stroke();
+        currentY += rowHeight;
+    });
+
+    // Dibujar bordes verticales
+    doc.moveTo(50, tableTop - 10).lineTo(50, currentY - 5).stroke(); // Borde izquierdo
+    doc.moveTo(50 + colWidths[0], tableTop - 10).lineTo(50 + colWidths[0], currentY - 5).stroke(); // Borde medio
+    doc.moveTo(tableRight, tableTop - 10).lineTo(tableRight, currentY - 5).stroke(); // Borde derecho
+
+    return currentY; // Devuelve la posición Y final para encadenar tablas
+}
+
+// --- Función para crear el buffer del PDF ---
+async function createPdfBuffer(stats, startDate, endDate) {
+    return new Promise((resolve) => {
+        const doc = new PDFDocument({ margin: 50, size: 'A4' });
+        const buffers = [];
+        doc.on('data', buffers.push.bind(buffers));
+        doc.on('end', () => resolve(Buffer.concat(buffers)));
+
+        // Añadir el logo
+        if (fs.existsSync('assets/logo.png')) {
+            doc.image('assets/logo.png', {
+                fit: [60, 60],
+                x: 50,
+                y: 45
+            });
+        }
+        
+        // Títulos principales
+        doc.fontSize(18).font('Helvetica-Bold').text('Reporte de Estadísticas - Sushi Burrito', { align: 'center' });
+        doc.fontSize(12).font('Helvetica').text(`Periodo: ${startDate} al ${endDate}`, { align: 'center' });
+        doc.moveDown(3);
+
+        let currentY = doc.y;
+
+        // Tabla de Resumen General
+        const summaryData = [
+            ['Total de Pedidos Facturados', stats.summary.totalOrders],
+            ['Ingresos Totales', `$${stats.summary.totalRevenue}`]
+        ];
+        currentY = drawTable(doc, currentY, 'Resumen General', ['Descripción', 'Valor'], summaryData);
+        currentY += 20;
+
+        // Tabla de Desglose por Método de Pago
+        const paymentData = stats.paymentMethods.length > 0 
+            ? stats.paymentMethods.map(method => [method.name, `$${parseFloat(method.totalAmount).toFixed(2)}`])
+            : [['No hay datos para este período.', '']];
+        currentY = drawTable(doc, currentY, 'Desglose por Método de Pago', ['Método', 'Monto Total'], paymentData);
+        currentY += 20;
+
+        // Tabla de Ranking de Productos
+        const rankingData = stats.productsRanking.length > 0 
+            ? stats.productsRanking.map(item => [item.name, item.quantity])
+            : [['No hay ranking para este período.', '']];
+        currentY = drawTable(doc, currentY, 'Ranking de Productos', ['Producto', 'Cantidad Vendida'], rankingData);
+        
+        doc.end();
+    });
+}
 
 // --- Endpoint para la página de estadísticas ---
 export const getStatistics = async (req, res) => {
@@ -105,55 +192,7 @@ export const getRecentActivity = async (req, res) => {
     }
 };
 
-
-// --- Funciones Auxiliares para PDF y Correo ---
-async function createPdfBuffer(stats, startDate, endDate) {
-    return new Promise((resolve) => {
-        const doc = new PDFDocument({ margin: 50, size: 'A4' });
-        const buffers = [];
-        doc.on('data', buffers.push.bind(buffers));
-        doc.on('end', () => resolve(Buffer.concat(buffers)));
-
-        doc.fontSize(18).text('Reporte de Estadísticas - Sushi Burrito', { align: 'center' });
-        doc.fontSize(12).text(`Periodo: ${startDate} al ${endDate}`, { align: 'center' });
-        doc.moveDown(2);
-
-        doc.fontSize(14).text('Resumen General', { underline: true });
-        doc.moveDown();
-        doc.fontSize(11).text(`Total de Pedidos Facturados: ${stats.summary.totalOrders}`);
-        doc.text(`Ingresos Totales: $${stats.summary.totalRevenue}`);
-        doc.moveDown(2);
-
-        doc.fontSize(14).text('Desglose por Método de Pago', { underline: true });
-        doc.moveDown();
-        if (stats.paymentMethods.length > 0) {
-            stats.paymentMethods.forEach(method => {
-                doc.fontSize(11).text(`${method.name}: $${parseFloat(method.totalAmount).toFixed(2)}`);
-            });
-        } else {
-            doc.fontSize(11).text('No hay datos de pago para este período.');
-        }
-        doc.moveDown(2);
-
-        doc.fontSize(14).text('Ranking de Productos', { underline: true });
-        doc.moveDown();
-        const tableTop = doc.y;
-        doc.font('Helvetica-Bold').fontSize(11).text('Producto', 50, tableTop).text('Cantidad Vendida', 400, tableTop, { align: 'right' });
-        doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke().moveDown();
-        doc.font('Helvetica');
-        
-        if (stats.productsRanking.length > 0) {
-            stats.productsRanking.forEach(item => {
-                doc.fontSize(11).text(item.name, { width: 350 }).moveUp().text(item.quantity.toString(), 400, doc.y, { align: 'right' });
-            });
-        } else {
-            doc.fontSize(11).text('No hay ranking para este período.');
-        }
-
-        doc.end();
-    });
-}
-
+// --- Función para enviar correo con el reporte ---
 async function sendEmailWithAttachment(recipientEmail, pdfBuffer, startDate, endDate) {
     const transporter = nodemailer.createTransport({
         service: process.env.EMAIL_SERVICE,

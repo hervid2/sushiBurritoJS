@@ -12,20 +12,68 @@ export const statsController = () => {
     const endDateInput = document.getElementById('end-date');
     const generateBtn = document.getElementById('generate-stats-btn');
     const statsResultsContainer = document.getElementById('stats-results-container');
+    const rankingPaginationContainer = document.getElementById('product-ranking-pagination');
+
+    // --- Estado ---
+    let currentRanking = [];
+    let currentRankingPage = 1;
+    const rankingItemsPerPage = 5;
+
+    // --- Lógica de Renderizado (Paginación del Ranking) ---
+    const renderRankingPagination = () => {
+        if (!rankingPaginationContainer) return;
+        rankingPaginationContainer.innerHTML = '';
+        const totalPages = Math.ceil(currentRanking.length / rankingItemsPerPage);
+        if (totalPages <= 1) return;
+
+        let buttonsHTML = '<ul>';
+        for (let i = 1; i <= totalPages; i++) {
+            buttonsHTML += `<li><button class="pagination-btn ${i === currentRankingPage ? 'active' : ''}" data-page="${i}">${i}</button></li>`;
+        }
+        buttonsHTML += '</ul>';
+        rankingPaginationContainer.innerHTML = buttonsHTML;
+
+        rankingPaginationContainer.querySelectorAll('.pagination-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                currentRankingPage = parseInt(e.target.dataset.page);
+                renderRankingTable();
+            });
+        });
+    };
+
+    // --- Lógica de Renderizado (Tabla de Ranking) ---
+    const renderRankingTable = () => {
+        const rankingTableBody = document.querySelector('#product-ranking-table tbody');
+        if (!rankingTableBody) return;
+
+        const startIndex = (currentRankingPage - 1) * rankingItemsPerPage;
+        const pageItems = currentRanking.slice(startIndex, startIndex + rankingItemsPerPage);
+
+        if (pageItems.length > 0) {
+            rankingTableBody.innerHTML = pageItems.map(item => `
+                <tr>
+                    <td>${item.name}</td>
+                    <td>${item.quantity}</td>
+                </tr>
+            `).join('');
+        } else {
+            rankingTableBody.innerHTML = '<tr><td colspan="2">No hay ranking para este período.</td></tr>';
+        }
+
+        renderRankingPagination();
+    };
     
-    // --- Lógica de la Interfaz ---
     const setDateLimits = () => {
         const today = new Date().toISOString().split('T')[0];
         startDateInput.max = today;
         endDateInput.max = today;
         endDateInput.value = today;
         
-        // Ponemos una fecha de inicio por defecto (el primer día del mes actual)
         const firstDayOfMonth = new Date(new Date().setDate(1)).toISOString().split('T')[0];
         startDateInput.value = firstDayOfMonth;
     };
 
-    // --- Carga de Datos y Renderizado ---
+    // --- Carga de Datos y Renderizado Principal ---
     const handleGenerateStats = async () => {
         const startDate = startDateInput.value;
         const endDate = endDateInput.value;
@@ -41,7 +89,6 @@ export const statsController = () => {
         try {
             const statsData = await api.get(`stats?startDate=${startDate}&endDate=${endDate}`);
             
-            // Reconstruir el HTML de resultados cada vez para asegurar limpieza
             statsResultsContainer.innerHTML = `
                 <div class="stats-grid">
                     <div class="stat-card stat-card--primary">
@@ -71,23 +118,20 @@ export const statsController = () => {
                     <div class="table-container">
                         <table class="table" id="product-ranking-table">
                             <thead><tr><th>Producto</th><th>Cantidad Vendida</th></tr></thead>
-                            <tbody>
-                                ${statsData.productsRanking.length > 0 ? statsData.productsRanking.map(item => `
-                                    <tr>
-                                        <td>${item.name}</td>
-                                        <td>${item.quantity}</td>
-                                    </tr>
-                                `).join('') : '<tr><td colspan="2">No hay ranking para este período.</td></tr>'}
-                            </tbody>
+                            <tbody></tbody>
                         </table>
                     </div>
+                    <div class="pagination-container" id="product-ranking-pagination"></div>
                     <div class="stats-actions">
                         <button class="btn btn--primary" id="send-pdf-btn"><i class="fas fa-file-pdf"></i> Enviar Reporte por Correo</button>
                     </div>
                 </div>
             `;
             
-            // Volver a asignar el listener al nuevo botón
+            currentRanking = statsData.productsRanking;
+            currentRankingPage = 1;
+            renderRankingTable();
+            
             document.getElementById('send-pdf-btn').addEventListener('click', handleSendPdf);
         } catch (error) {
             statsResultsContainer.innerHTML = `<div class="error-message">${error.message}</div>`;
@@ -112,11 +156,9 @@ export const statsController = () => {
         }
     };
     
-    // --- Inicialización ---
     const init = () => {
         setDateLimits();
         generateBtn.addEventListener('click', handleGenerateStats);
-        // Se elimina la llamada automática que cargaba las estadísticas al inicio.
     };
 
     init();
