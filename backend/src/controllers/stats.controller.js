@@ -87,8 +87,8 @@ async function createPdfBuffer(stats, startDate, endDate) {
         doc.on('end', () => resolve(Buffer.concat(buffers)));
 
         // Añadir el logo
-        if (fs.existsSync('assets/logo.png')) {
-            doc.image('assets/logo.png', {
+        if (fs.existsSync('assets/logo.jpg')) {
+            doc.image('assets/logo.jpg', {
                 fit: [60, 60],
                 x: 50,
                 y: 45
@@ -199,9 +199,9 @@ async function sendEmailWithAttachment(recipientEmail, pdfBuffer, startDate, end
         auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASSWORD }
     });
     await transporter.sendMail({
-        from: `"Reportes Sushi Burrito" <${process.env.EMAIL_USER}>`,
+        from: `"Reporte ventas y estadísticas Sushi Burrito" <${process.env.EMAIL_USER}>`,
         to: recipientEmail,
-        subject: `Reporte de Estadísticas (${startDate} a ${endDate})`,
+        subject: `Reporte de (${startDate} a ${endDate})`,
         text: 'Adjunto encontrarás el reporte de estadísticas de ventas generado para el periodo seleccionado.',
         attachments: [{
             filename: `reporte_${startDate}_${endDate}.pdf`,

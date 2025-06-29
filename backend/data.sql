@@ -1,11 +1,11 @@
 -- Crear el usuario
-CREATE USER if not exists ''@'localhost' IDENTIFIED BY '';
+CREATE USER if not exists 'sushiBurrito'@'localhost' IDENTIFIED BY '';
 
 #Creamos la base de datos
 CREATE DATABASE sushiBurritoJS_DB CHARACTER SET utf8mb4;
 
 #Asignamos la base de datos al usuario y le damos todos los permisos
-GRANT ALL PRIVILEGES ON sushiBurritoJS_DB.* TO ""@"localhost";
+GRANT ALL PRIVILEGES ON sushiBurritoJS_DB.* TO "sushiBurrito"@"localhost";
 
 #Refrescamos los permisos de todo el sistema
 FLUSH PRIVILEGES;
@@ -146,16 +146,6 @@ select * from facturas;
 select * from mesas;
 select * from metodos_pago;
 select * from transacciones_pago;
-
-
--- Insertar las categorías iniciales
-INSERT INTO categorias (nombre) VALUES
-('Infantil'),
-('Bebidas'),
-('Postres'),
-('Entradas'),
-('Platos Fuertes'),
-('Acompañamientos');
 
 -- insertar las mesas iniciales
 INSERT INTO mesas (numero_mesa) VALUES

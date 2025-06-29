@@ -84,6 +84,8 @@
 }
 .pagination-container ul {
     display: flex;
+    flex-wrap: wrap; 
+    justify-content: center;
     gap: 0.5rem;
     list-style: none;
     padding: 0;

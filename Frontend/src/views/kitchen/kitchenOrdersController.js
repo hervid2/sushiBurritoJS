@@ -44,49 +44,54 @@ export const kitchenOrdersController = (params) => {
 
     // --- Lógica de Renderizado ---
     const renderPage = () => {
-      if (!ordersListContainer) return;
+        if (!ordersListContainer) return;
 
-      const startIndex = (currentPage - 1) * itemsPerPage;
-      const pageItems = allOrders.slice(startIndex, startIndex + itemsPerPage);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const pageItems = allOrders.slice(startIndex, startIndex + itemsPerPage);
 
-      if (pageItems.length === 0) {
-          ordersListContainer.innerHTML = `<div class="empty-message">No hay pedidos en estado '${currentStatus}'.</div>`;
-      } else {
-          const formatDate = (dateString) => new Date(dateString).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
-          
-          ordersListContainer.innerHTML = pageItems.map(order => {
-              const productosHTML = Array.isArray(order.Productos) ? order.Productos.map(p => 
-                  `<li>${p.DetallePedido?.cantidad || 0}x ${p.nombre_producto}</li>`
-              ).join('') : '<li>Error al cargar productos</li>';
-
-              const notasHTML = Array.isArray(order.Productos) && order.Productos.map(p => p.DetallePedido?.notas).filter(Boolean).length > 0
-                  ? `<p class="order-card__notes"><strong>Notas:</strong> ${order.Productos.map(p => p.DetallePedido?.notas).filter(Boolean).join(', ')}</p>`
-                  : '';
-
-              return `
-              <div class="order-card order-card--${order.estado}" data-order-id="${order.pedido_id}">
-                  <div class="order-card__header">
-                      <h3 class="order-card__id">Pedido #${order.pedido_id}</h3>
-                      <span class="order-card__time">${formatDate(order.fecha_creacion)}</span>
-                  </div>
-                  <div class="order-card__body">
-                      <p><strong>Mesa:</strong> ${order.Mesa?.numero_mesa || 'N/A'}</p>
-                      <ul class="order-card__items">
-                          ${productosHTML}
-                      </ul>
-                      ${notasHTML}
-                  </div>
-                  <div class="order-card__actions">
-                      ${order.estado === 'pendiente' ? `<button class="btn btn--primary start-preparing-btn" data-id="${order.pedido_id}">En Preparación</button>` : ''}
-                      ${order.estado === 'en_preparacion' ? `<button class="btn btn--success mark-ready-btn" data-id="${order.pedido_id}">Marcar Listo</button>` : ''}
-                  </div>
-              </div>
-          `}).join('');
-      }
-      
-      renderPagination();
-      attachButtonListeners();
-  };
+        if (pageItems.length === 0) {
+            ordersListContainer.innerHTML = `<div class="empty-message">No hay pedidos en estado '${currentStatus}'.</div>`;
+        } else {
+            const formatDate = (dateString) => new Date(dateString).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+            
+            ordersListContainer.innerHTML = pageItems.map(order => {
+                const productosHTML = Array.isArray(order.Productos) ? order.Productos.map(p => {
+                    // Se verifica si el producto actual tiene una nota.
+                    const notaProducto = p.DetallePedido?.notas
+                        ? `<p class="order-card__item-note">Nota: ${p.DetallePedido.notas}</p>`
+                        : '';
+                    // Se renderiza el producto y su nota justo debajo.
+                    return `
+                        <li class="order-card__item">
+                            <span>${p.DetallePedido?.cantidad || 0}x ${p.nombre_producto}</span>
+                            ${notaProducto}
+                        </li>
+                    `;
+                }).join('') : '<li>Error al cargar productos</li>';
+                return `
+                    <div class="order-card order-card--${order.estado}" data-order-id="${order.pedido_id}">
+                        <div class="order-card__header">
+                            <h3 class="order-card__id">Pedido #${order.pedido_id}</h3>
+                            <span class="order-card__time">${formatDate(order.fecha_creacion)}</span>
+                        </div>
+                        <div class="order-card__body">
+                            <p><strong>Mesa:</strong> ${order.Mesa?.numero_mesa || 'N/A'}</p>
+                            <ul class="order-card__items">
+                                ${productosHTML}
+                            </ul>
+                        </div>
+                        <div class="order-card__actions">
+                            ${order.estado === 'pendiente' ? `<button class="btn btn--primary start-preparing-btn" data-id="${order.pedido_id}">En Preparación</button>` : ''}
+                            ${order.estado === 'en_preparacion' ? `<button class="btn btn--success mark-ready-btn" data-id="${order.pedido_id}">Marcar Listo</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        renderPagination();
+        attachButtonListeners();
+    };
     
     const renderPagination = () => {
         if (!paginationContainer) return;

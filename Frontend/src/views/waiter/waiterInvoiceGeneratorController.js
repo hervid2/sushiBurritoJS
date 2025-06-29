@@ -14,12 +14,10 @@ export const waiterInvoiceGeneratorController = () => {
     const summarySubtotal = document.getElementById('summary-subtotal'), summaryTax = document.getElementById('summary-tax'), tipInput = document.getElementById('tip-amount'), summaryTotal = document.getElementById('summary-total');
     const paymentMethodSelect = document.getElementById('payment-method');
     const finalizeBtn = document.getElementById('finalize-invoice-btn'), finalInvoiceSection = document.getElementById('final-invoice-section'), finalInvoiceContent = document.getElementById('final-invoice-content'), finalInvoiceTitle = document.getElementById('final-invoice-title');
-    const modifyInvoiceBtn = document.getElementById('modify-invoice-btn'), sendEmailBtn = document.getElementById('send-email-btn');
+    const voidInvoiceBtn = document.getElementById('void-invoice-btn'), sendEmailBtn = document.getElementById('send-email-btn');
     const sendEmailModal = document.getElementById('send-email-modal'), sendEmailForm = document.getElementById('send-email-form'), emailInput = document.getElementById('email-input'), cancelEmailBtn = document.getElementById('cancel-email-btn');
-    // Referencias para el modal de edición de artículo
     const editItemModal = document.getElementById('edit-item-modal'), editItemForm = document.getElementById('edit-item-form'), editItemName = document.getElementById('edit-item-name');
     const editItemQuantity = document.getElementById('edit-item-quantity'), cancelEditBtn = document.getElementById('cancel-edit-btn'), saveEditBtn = document.getElementById('save-edit-btn');
-
 
     // --- Estado ---
     let currentOrder = null;
@@ -80,7 +78,7 @@ export const waiterInvoiceGeneratorController = () => {
     const handleSaveEdit = () => {
         const index = editItemForm.querySelector('#edit-item-index').value;
         currentOrder.Productos[index].DetallePedido.cantidad = parseInt(editItemQuantity.value, 10);
-        renderTable(); // Recalcular todo
+        renderTable();
         editItemModal.classList.remove('is-active');
     };
 
@@ -108,7 +106,6 @@ export const waiterInvoiceGeneratorController = () => {
             generatedInvoiceId = result.factura.factura_id;
             showAlert(result.message, 'success');
             
-            // Refrescar la lista de pedidos para que el facturado ya no aparezca
             await init(true);
 
             detailsSection.style.display = 'none';
@@ -124,9 +121,25 @@ export const waiterInvoiceGeneratorController = () => {
         }
     };
 
-    const handleModifyInvoice = () => {
-        finalInvoiceSection.style.display = 'none';
-        detailsSection.style.display = 'block';
+    const handleVoidInvoice = async () => {
+        if (!generatedInvoiceId) return;
+        try {
+            await showConfirmModal('Confirmar Anulación', `¿Está seguro de que desea anular la factura <strong>#${generatedInvoiceId}</strong>? Esta acción no se puede deshacer.`);
+            const response = await api.post(`facturas/${generatedInvoiceId}/void`);
+            showAlert(response.message, 'success');
+            // Volver a la pantalla de edición
+            finalInvoiceSection.style.display = 'none';
+            detailsSection.style.display = 'block';
+            // Recargar la lista de pedidos para que el anulado vuelva a aparecer
+            await init(true);
+
+        } catch (error) {
+            if (error && error.message) {
+                showAlert(error.message, 'error');
+            } else {
+                console.log("Anulación cancelada por el usuario.");
+            }
+        }
     };
 
     const handleSendEmail = async (e) => {
@@ -149,11 +162,9 @@ export const waiterInvoiceGeneratorController = () => {
     const init = async (isRefresh = false) => {
         try {
             if (!isRefresh) {
-                // Cargar métodos de pago solo la primera vez
                 const paymentMethods = await api.get('metodos-pago');
                 paymentMethodSelect.innerHTML = paymentMethods.map(p => `<option value="${p.metodo_pago_id}">${p.nombre_metodo}</option>`).join('');
             }
-            // Cargar pedidos listos para facturar
             const orders = await api.get('pedidos?estado=entregado');
             selectOrder.innerHTML = '<option value="">-- Seleccione un pedido --</option>' + 
                 orders.map(o => `<option value="${o.pedido_id}">Pedido #${o.pedido_id} - Mesa ${o.Mesa?.numero_mesa || 'N/A'}</option>`).join('');
@@ -163,7 +174,6 @@ export const waiterInvoiceGeneratorController = () => {
         }
     };
     
-    // Se añade listener para la tabla (delegación de eventos)
     tableBody.addEventListener('click', (e) => {
         const target = e.target;
         if (target.matches('.edit-item-btn')) {
@@ -176,15 +186,13 @@ export const waiterInvoiceGeneratorController = () => {
     loadBtn.onclick = handleLoadOrder;
     tipInput.oninput = () => calculateAndRenderTotals();
     finalizeBtn.onclick = handleFinalizeInvoice;
-    modifyInvoiceBtn.onclick = handleModifyInvoice;
+    voidInvoiceBtn.onclick = handleVoidInvoice;
     sendEmailBtn.onclick = () => sendEmailModal.classList.add('is-active');
     
-    // Listeners para el modal de edición
     cancelEditBtn.onclick = () => editItemModal.classList.remove('is-active');
     editItemModal.querySelector('.modal__close-btn').onclick = () => editItemModal.classList.remove('is-active');
     saveEditBtn.onclick = handleSaveEdit;
 
-    // Listeners para el modal de envío de email
     cancelEmailBtn.onclick = () => sendEmailModal.classList.remove('is-active');
     sendEmailModal.querySelector('.modal__close-btn').onclick = () => sendEmailModal.classList.remove('is-active');
     sendEmailForm.onsubmit = handleSendEmail;

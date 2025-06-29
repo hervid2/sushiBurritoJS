@@ -5,10 +5,9 @@
 import db from '../models/index.js';
 import nodemailer from 'nodemailer';
 import PDFDocument from 'pdfkit';
+import fs from 'fs';
 
-const { Pedido, Factura, Producto, MetodoPago, DetallePedido, sequelize } = db;
-
-// --- Bloque de Funciones para crear y obtener facturas ---
+const { Pedido, Factura, Producto, MetodoPago, DetallePedido, TransaccionPago, sequelize } = db;
 
 // --- Función para crear una nueva factura ---
 export const createInvoice = async (req, res) => {
@@ -59,6 +58,38 @@ export const createInvoice = async (req, res) => {
     }
 };
 
+// --- Función para anular una factura ---
+export const voidInvoice = async (req, res) => {
+    const { id } = req.params; // ID de la factura a anular
+
+    const t = await sequelize.transaction();
+    try {
+        const factura = await Factura.findByPk(id, { transaction: t });
+        if (!factura) {
+            await t.rollback();
+            return res.status(404).send({ message: "Factura no encontrada para anular." });
+        }
+
+        const pedido = await Pedido.findByPk(factura.pedido_id, { transaction: t });
+        if (!pedido) {
+            await t.rollback();
+            return res.status(404).send({ message: "Pedido asociado no encontrado." });
+        }
+
+        await TransaccionPago.destroy({ where: { factura_id: id }, transaction: t });
+        await Factura.destroy({ where: { factura_id: id }, transaction: t });
+        await pedido.update({ estado: 'entregado' }, { transaction: t });
+
+        await t.commit();
+        res.status(200).send({ message: `Factura #${id} anulada correctamente. El pedido está listo para ser corregido y refacturado.` });
+
+    } catch (error) {
+        await t.rollback();
+        console.error("Error al anular la factura:", error);
+        res.status(500).send({ message: "Error interno al anular la factura." });
+    }
+};
+
 // --- Función para obtener una factura por ID ---
 export const getInvoiceById = async (req, res) => {
     try {
@@ -80,18 +111,16 @@ export const getInvoiceById = async (req, res) => {
     }
 };
 
-
 // --- Función para Enviar Factura por Correo ---
 export const sendInvoiceByEmail = async (req, res) => {
-    const { id } = req.params; // ID de la factura
-    const { email } = req.body; // Correo del cliente proporcionado en el frontend
+    const { id } = req.params;
+    const { email } = req.body;
 
     if (!email) {
         return res.status(400).send({ message: "La dirección de correo es requerida." });
     }
 
     try {
-        // 1. Obtener los datos completos de la factura
         const factura = await Factura.findByPk(id, {
             include: [
                 {
@@ -109,10 +138,7 @@ export const sendInvoiceByEmail = async (req, res) => {
             return res.status(404).send({ message: "Factura no encontrada." });
         }
 
-        // 2. Generar el PDF de la factura en memoria
         const pdfBuffer = await createInvoicePdfBuffer(factura);
-
-        // 3. Enviar el correo con el PDF adjunto
         await sendEmailWithAttachment(email, pdfBuffer, factura.factura_id);
 
         res.status(200).send({ message: `Factura enviada exitosamente a ${email}` });
@@ -131,15 +157,21 @@ async function createInvoicePdfBuffer(factura) {
         doc.on('data', buffers.push.bind(buffers));
         doc.on('end', () => resolve(Buffer.concat(buffers)));
 
-        // --- Contenido del PDF ---
-        doc.fontSize(20).text(`Factura #${factura.factura_id}`, { align: 'center' });
-        doc.moveDown();
-        doc.fontSize(12).text(`Fecha: ${new Date(factura.fecha_factura).toLocaleString()}`);
+        if (fs.existsSync('assets/logo.jpg')) {
+            doc.image('assets/logo.jpg', {
+                fit: [60, 60],
+                x: 50,
+                y: 45
+            });
+        }
+
+        doc.fontSize(20).font('Helvetica-Bold').text(`Factura #${factura.factura_id}`, { align: 'center' });
+        doc.moveDown(2);
+        doc.fontSize(12).font('Helvetica').text(`Fecha: ${new Date(factura.fecha_factura).toLocaleString()}`);
         doc.text(`Pedido: #${factura.pedido_id}`);
         doc.text(`Método de Pago: ${factura.MetodoPago.nombre_metodo}`);
         doc.moveDown(2);
 
-        // Tabla de productos
         const tableTop = doc.y;
         doc.font('Helvetica-Bold');
         doc.text('Producto', 50, tableTop).text('Cant.', 300, tableTop).text('P. Unit.', 370, tableTop, {width: 60, align: 'right'}).text('Subtotal', 450, tableTop, {width: 60, align: 'right'});
@@ -156,7 +188,6 @@ async function createInvoicePdfBuffer(factura) {
             doc.moveDown();
         });
         
-        // Totales
         const totalsY = doc.y + 20;
         doc.font('Helvetica-Bold').text('Subtotal:', 370, totalsY).text(`$${factura.subtotal}`, 450, totalsY, {width: 60, align: 'right'});
         doc.font('Helvetica').text('Impuesto (8%):', 370, totalsY + 15).text(`$${factura.impuesto_total}`, 450, totalsY + 15, {width: 60, align: 'right'});

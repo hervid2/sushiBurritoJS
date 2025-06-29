@@ -14,5 +14,7 @@ router.post('/', [verifyToken], facturaController.createInvoice);
 router.get('/:id', [verifyToken], facturaController.getInvoiceById);
 // Enviar una factura específica por correo
 router.post('/:id/send-email', [verifyToken], facturaController.sendInvoiceByEmail);
+// Anular una factura existente
+router.post('/:id/void', [verifyToken], facturaController.voidInvoice);
 
 export default router;
