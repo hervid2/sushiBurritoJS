@@ -1,4 +1,4 @@
-# Logs
+# Archivos de registro.
 logs
 *.log
 npm-debug.log*
@@ -7,12 +7,13 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Archivos y Carpetas de Entorno y Dependencias
 node_modules
 dist
 dist-ssr
 *.local
 
-# Editor directories and files
+#  Archivos y Carpetas del Editor de Código
 .vscode/*
 !.vscode/extensions.json
 .idea
