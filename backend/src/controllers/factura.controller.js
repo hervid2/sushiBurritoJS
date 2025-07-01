@@ -1,7 +1,3 @@
-// ===================================================
-// ARCHIVO: src/controllers/factura.controller.js 
-// ===================================================
-
 import db from '../models/index.js';
 import nodemailer from 'nodemailer';
 import PDFDocument from 'pdfkit';
@@ -48,6 +44,13 @@ export const createInvoice = async (req, res) => {
             propina: propina_valor, total
         }, { transaction: t });
 
+        // registrar la transacción de pago
+        await TransaccionPago.create({
+            factura_id: nuevaFactura.factura_id,
+            metodo_pago_id: metodo_pago_id,
+            monto_pagado: total 
+        }, { transaction: t });
+        
         await pedido.update({ estado: 'pagado' }, { transaction: t });
         await t.commit();
         res.status(201).send({ message: "Factura creada exitosamente.", factura: nuevaFactura });
@@ -60,7 +63,7 @@ export const createInvoice = async (req, res) => {
 
 // --- Función para anular una factura ---
 export const voidInvoice = async (req, res) => {
-    const { id } = req.params; // ID de la factura a anular
+    const { id } = req.params; 
 
     const t = await sequelize.transaction();
     try {
@@ -90,6 +93,7 @@ export const voidInvoice = async (req, res) => {
     }
 };
 
+
 // --- Función para obtener una factura por ID ---
 export const getInvoiceById = async (req, res) => {
     try {
@@ -110,6 +114,7 @@ export const getInvoiceById = async (req, res) => {
         res.status(500).send({ message: "Error al obtener la factura: " + error.message });
     }
 };
+
 
 // --- Función para Enviar Factura por Correo ---
 export const sendInvoiceByEmail = async (req, res) => {
