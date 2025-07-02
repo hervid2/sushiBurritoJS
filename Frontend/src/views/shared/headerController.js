@@ -1,37 +1,58 @@
-// src/views/shared/headerController.js
+// =================================================================
+// ARCHIVO: src/views/shared/headerController.js
+// ROL: Controlador para el componente de encabezado (header).
+//      Gestiona la lógica de la sesión del usuario, como mostrar
+//      y dar funcionalidad al botón de "Cerrar Sesión".
+// =================================================================
 
-import { navigateTo } from "../../router/router.js";
+// Importa la función showAlert desde el módulo de alertas para mostrar mensajes al usuario.
 import { showAlert } from "../../helpers/alerts.js";
 
+/**
+ * Controlador principal para el componente de encabezado.
+ */
 export const headerController = () => {
+    // Se obtiene la referencia al botón de logout en el DOM.
     const logoutButton = document.getElementById('logout-button');
+    
+    // Se verifica el estado de autenticación del usuario desde localStorage.
     const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
 
+    // Cláusula de guarda: si el botón no existe, se detiene la ejecución para evitar errores.
     if (!logoutButton) {
-        console.error("Logout button not found in header.");
+        console.error("El botón de logout no fue encontrado en el header.");
         return;
     }
 
-    // Lógica para mostrar u ocultar el botón
+    // Lógica condicional basada en el estado de autenticación.
     if (isAuthenticated) {
-        logoutButton.style.display = 'inline-block'; // <-- HACE VISIBLE EL BOTÓN
+        // Si el usuario está autenticado, se muestra el botón.
+        logoutButton.style.display = 'inline-block';
 
-        // Se usa un clon para evitar añadir múltiples listeners en recargas
-        const newLogoutButton = logoutButton.cloneNode(true);
-        logoutButton.parentNode.replaceChild(newLogoutButton, logoutButton);
+        // --- Técnica para prevenir event listeners duplicados ---
+        // Se clona el botón para eliminar cualquier listener preexistente.
+        // Esto es crucial porque esta lógica se puede ejecutar múltiples veces
+        // al navegar entre vistas, y no queremos acumular listeners.
+        const newLogoutButton = logoutButton.cloneNode(true); // Clona el botón actual.
+        logoutButton.parentNode.replaceChild(newLogoutButton, logoutButton); // Reemplaza el botón original con el clonado.
         
+        // Se añade un único event listener al nuevo botón clonado.
         newLogoutButton.addEventListener('click', () => {
             showAlert('Has cerrado sesión.', 'success');
             
-            localStorage.removeItem('isAuthenticated');
-            localStorage.removeItem('userRole');
-            localStorage.removeItem('userToken');
+            // Se eliminan todos los datos de la sesión del almacenamiento local.
+            localStorage.removeItem('isAuthenticated');// Se elimina el estado de autenticación.
+            localStorage.removeItem('userRole'); // Se elimina el rol del usuario.
+            localStorage.removeItem('accessToken'); // Se corrige para usar la clave correcta.
+            localStorage.removeItem('refreshToken'); // Se añade para una limpieza completa.
             
-            // Refrescar la página después del logout asegura que todo el estado se reinicie limpiamente
-            window.location.hash = '/login';
-            window.location.reload();
+            // Se redirige y se recarga la aplicación para un reinicio de estado limpio y seguro.
+            window.location.hash = '/login'; // Redirige al usuario a la página de inicio de sesión.
+            window.location.reload(); // Recarga la página para aplicar los cambios de estado.
         });
     } else {
-        logoutButton.style.display = 'none'; // Se asegura de que esté oculto si no hay sesión
+        // Si el usuario no está autenticado, se asegura de que el botón esté oculto.
+        logoutButton.style.display = 'none';
     }
 };
+

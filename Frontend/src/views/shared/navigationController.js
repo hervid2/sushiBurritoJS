@@ -1,13 +1,26 @@
-// src/views/shared/navigationController.js
+// =================================================================
+// ARCHIVO: src/views/shared/navigationController.js
+// ROL: Controlador para el componente de navegación principal.
+//      Su responsabilidad es renderizar dinámicamente los enlaces
+//      de navegación apropiados según el rol del usuario autenticado.
+// =================================================================
 
-// Este controlador ahora es muy simple. Solo renderiza el menú que se le pasa.
+/**
+ * Renderiza la barra de navegación y resalta el enlace activo.
+ * @param {object} props - Propiedades pasadas al controlador.
+ * @param {string} props.role - El rol del usuario actual (ej. 'administrador', 'mesero').
+ */
 export const navigationController = (props) => {
+    // Se extrae el rol del objeto de propiedades.
     const { role } = props;
+    // Se obtiene el contenedor de la navegación en el DOM.
     const navContainer = document.getElementById('main-navigation');
 
+    // Cláusula de guarda: si el contenedor no existe, se detiene la ejecución.
     if (!navContainer) return;
 
-    // Define los enlaces para cada rol
+    // Objeto que funciona como un mapa de menús. Asocia un rol con su HTML de navegación.
+    // Esta estructura centraliza los menús y facilita su mantenimiento.
     const navLinks = {
         administrador: `
             <a href="#/admin/dashboard" class="nav__link" data-path="admin/dashboard">Dashboard</a>
@@ -27,12 +40,19 @@ export const navigationController = (props) => {
         `,
     };
     
-    // Renderiza el menú correspondiente al rol
+    // Se renderiza el menú correspondiente al rol del usuario.
+    // Si el rol no se encuentra en navLinks, se renderiza una cadena vacía para evitar errores.
     navContainer.innerHTML = navLinks[role] || '';
 
-    // Lógica para marcar el enlace activo
+    // --- Lógica para marcar el enlace activo ---
+
+    // Se obtiene la ruta actual del hash de la URL, eliminando los caracteres '#/'.
     const currentPath = window.location.hash.substring(2);
+    
+    // Se busca dentro de la navegación un enlace cuyo atributo 'data-path' coincida con la ruta actual.
     const activeLink = navContainer.querySelector(`[data-path="${currentPath}"]`);
+    
+    // Si se encuentra el enlace correspondiente, se le añade la clase 'nav__link--active' para resaltarlo.
     if (activeLink) {
         activeLink.classList.add('nav__link--active');
     }
