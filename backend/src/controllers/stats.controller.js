@@ -1,36 +1,66 @@
 // =================================================================
 // ARCHIVO: src/controllers/stats.controller.js
-// DESCRIPCIÓN: Controlador de estadísticas 
+// ROL: Controlador que maneja la lógica para la agregación de datos,
+//      generación de estadísticas y reportes para el negocio.
 // =================================================================
 
 import db from '../models/index.js';
 import { Op } from 'sequelize';
 import PDFDocument from 'pdfkit';
 import nodemailer from 'nodemailer';
-import fs from 'fs'; // Importar 'fs' para leer la imagen del logo
+import fs from 'fs';
 
 const { Factura, Pedido, DetallePedido, Producto, Usuario, MetodoPago, TransaccionPago, sequelize } = db;
 
-// --- Función Auxiliar para obtener todos los datos ---
+/**
+ * Función auxiliar que centraliza las consultas de estadísticas a la base de datos.
+ * @param {string} startDate - La fecha de inicio del rango.
+ * @param {string} endDate - La fecha de fin del rango.
+ * @returns {Promise<object>} - Un objeto con los datos de estadísticas agregados.
+ */
 const getStatisticsData = async (startDate, endDate) => {
     const finalEndDate = new Date(endDate);
-    finalEndDate.setDate(finalEndDate.getDate() + 1);
+    finalEndDate.setDate(finalEndDate.getDate() + 1); // Se ajusta para incluir el día final completo.
     const dateFilter = { [Op.gte]: new Date(startDate), [Op.lt]: finalEndDate };
 
+    // Se ejecutan todas las consultas de agregación en paralelo para mayor eficiencia.
     const [summary, productsRanking, paymentMethods] = await Promise.all([
+        // 1. Resumen de totales de facturas.
         Factura.findOne({
-            attributes: [[sequelize.fn('COUNT', sequelize.col('factura_id')), 'totalOrders'], [sequelize.fn('SUM', sequelize.col('total')), 'totalRevenue']],
-            where: { fecha_factura: dateFilter }, raw: true
+            attributes: [
+                [sequelize.fn('COUNT', sequelize.col('factura_id')), 'totalOrders'],
+                [sequelize.fn('SUM', sequelize.col('total')), 'totalRevenue']
+            ],
+            where: { fecha_factura: dateFilter },
+            raw: true
         }),
+        // 2. Ranking de los 10 productos más vendidos.
         DetallePedido.findAll({
-            attributes: [[sequelize.col('Producto.nombre_producto'), 'name'], [sequelize.fn('SUM', sequelize.col('cantidad')), 'quantity']],
-            include: [{ model: Producto, attributes: [] }, { model: Pedido, attributes: [], where: { fecha_creacion: dateFilter }, required: false }],
-            group: ['Producto.nombre_producto'], order: [[sequelize.fn('SUM', sequelize.col('cantidad')), 'DESC']], limit: 10, raw: true
+            attributes: [
+                [sequelize.col('Producto.nombre_producto'), 'name'],
+                [sequelize.fn('SUM', sequelize.col('cantidad')), 'quantity']
+            ],
+            include: [
+                { model: Producto, attributes: [] }, // Join para obtener el nombre.
+                { model: Pedido, attributes: [], where: { fecha_creacion: dateFilter }, required: true } // Join para filtrar por fecha.
+            ],
+            group: ['Producto.nombre_producto'],
+            order: [[sequelize.fn('SUM', sequelize.col('cantidad')), 'DESC']],
+            limit: 10,
+            raw: true
         }),
+        // 3. Desglose de ingresos por método de pago.
         TransaccionPago.findAll({
-            attributes: [[sequelize.col('MetodoPago.nombre_metodo'), 'name'], [sequelize.fn('SUM', sequelize.col('monto_pagado')), 'totalAmount']],
-            include: [{ model: MetodoPago, attributes: [] }, { model: Factura, attributes: [], where: { fecha_factura: dateFilter }, required: true }],
-            group: ['MetodoPago.nombre_metodo'], raw: true
+            attributes: [
+                [sequelize.col('MetodoPago.nombre_metodo'), 'name'],
+                [sequelize.fn('SUM', sequelize.col('monto_pagado')), 'totalAmount']
+            ],
+            include: [
+                { model: MetodoPago, attributes: [] },
+                { model: Factura, attributes: [], where: { fecha_factura: dateFilter }, required: true }
+            ],
+            group: ['MetodoPago.nombre_metodo'],
+            raw: true
         })
     ]);
 
@@ -41,18 +71,25 @@ const getStatisticsData = async (startDate, endDate) => {
     };
 };
 
-// --- Función Auxiliar para dibujar tablas en el PDF ---
+/**
+ * Función auxiliar para dibujar una tabla con bordes en un documento PDF.
+ * @param {PDFDocument} doc - La instancia del documento PDF de pdfkit.
+ * @param {number} startY - La posición Y inicial para dibujar la tabla.
+ * @param {string} title - El título de la tabla.
+ * @param {Array<string>} headers - Un array con los nombres de las columnas.
+ * @param {Array<Array<any>>} data - Un array de arrays con los datos de las filas.
+ * @returns {number} - La posición Y final después de dibujar la tabla.
+ */
 function drawTable(doc, startY, title, headers, data) {
     let currentY = startY;
     const tableTop = startY + 25;
     const rowHeight = 25;
-    const colWidths = [350, 150]; // Ancho para las dos columnas
+    const colWidths = [350, 150];
     const tableRight = 50 + colWidths[0] + colWidths[1];
 
     doc.fontSize(14).font('Helvetica-Bold').text(title, 50, currentY);
     currentY += 35;
 
-    // Dibujar encabezado
     doc.font('Helvetica-Bold');
     headers.forEach((header, i) => {
         doc.text(header, 50 + (i * colWidths[i-1] || 0), currentY, { width: colWidths[i], align: 'left' });
@@ -60,7 +97,6 @@ function drawTable(doc, startY, title, headers, data) {
     doc.moveTo(50, currentY + rowHeight - 5).lineTo(tableRight, currentY + rowHeight - 5).stroke();
     currentY += rowHeight;
 
-    // Dibujar filas de datos
     doc.font('Helvetica');
     data.forEach(row => {
         row.forEach((cell, i) => {
@@ -70,15 +106,20 @@ function drawTable(doc, startY, title, headers, data) {
         currentY += rowHeight;
     });
 
-    // Dibujar bordes verticales
-    doc.moveTo(50, tableTop - 10).lineTo(50, currentY - 5).stroke(); // Borde izquierdo
-    doc.moveTo(50 + colWidths[0], tableTop - 10).lineTo(50 + colWidths[0], currentY - 5).stroke(); // Borde medio
-    doc.moveTo(tableRight, tableTop - 10).lineTo(tableRight, currentY - 5).stroke(); // Borde derecho
+    doc.moveTo(50, tableTop - 10).lineTo(50, currentY - 5).stroke();
+    doc.moveTo(50 + colWidths[0], tableTop - 10).lineTo(50 + colWidths[0], currentY - 5).stroke();
+    doc.moveTo(tableRight, tableTop - 10).lineTo(tableRight, currentY - 5).stroke();
 
-    return currentY; // Devuelve la posición Y final para encadenar tablas
+    return currentY;
 }
 
-// --- Función para crear el buffer del PDF ---
+/**
+ * Función auxiliar para generar un PDF en memoria.
+ * @param {object} stats - El objeto de estadísticas.
+ * @param {string} startDate - La fecha de inicio del reporte.
+ * @param {string} endDate - La fecha de fin del reporte.
+ * @returns {Promise<Buffer>} - Una promesa que se resuelve con el buffer del PDF.
+ */
 async function createPdfBuffer(stats, startDate, endDate) {
     return new Promise((resolve) => {
         const doc = new PDFDocument({ margin: 50, size: 'A4' });
@@ -86,23 +127,16 @@ async function createPdfBuffer(stats, startDate, endDate) {
         doc.on('data', buffers.push.bind(buffers));
         doc.on('end', () => resolve(Buffer.concat(buffers)));
 
-        // Añadir el logo
         if (fs.existsSync('assets/logo.jpg')) {
-            doc.image('assets/logo.jpg', {
-                fit: [60, 60],
-                x: 50,
-                y: 45
-            });
+            doc.image('assets/logo.jpg', { fit: [60, 60], x: 50, y: 45 });
         }
         
-        // Títulos principales
         doc.fontSize(18).font('Helvetica-Bold').text('Reporte de Estadísticas - Sushi Burrito', { align: 'center' });
         doc.fontSize(12).font('Helvetica').text(`Periodo: ${startDate} al ${endDate}`, { align: 'center' });
         doc.moveDown(3);
 
         let currentY = doc.y;
 
-        // Tabla de Resumen General
         const summaryData = [
             ['Total de Pedidos Facturados', stats.summary.totalOrders],
             ['Ingresos Totales', `$${stats.summary.totalRevenue}`]
@@ -110,14 +144,12 @@ async function createPdfBuffer(stats, startDate, endDate) {
         currentY = drawTable(doc, currentY, 'Resumen General', ['Descripción', 'Valor'], summaryData);
         currentY += 20;
 
-        // Tabla de Desglose por Método de Pago
         const paymentData = stats.paymentMethods.length > 0 
             ? stats.paymentMethods.map(method => [method.name, `$${parseFloat(method.totalAmount).toFixed(2)}`])
             : [['No hay datos para este período.', '']];
         currentY = drawTable(doc, currentY, 'Desglose por Método de Pago', ['Método', 'Monto Total'], paymentData);
         currentY += 20;
 
-        // Tabla de Ranking de Productos
         const rankingData = stats.productsRanking.length > 0 
             ? stats.productsRanking.map(item => [item.name, item.quantity])
             : [['No hay ranking para este período.', '']];
@@ -127,7 +159,9 @@ async function createPdfBuffer(stats, startDate, endDate) {
     });
 }
 
-// --- Endpoint para la página de estadísticas ---
+/**
+ * Endpoint para obtener las estadísticas para un rango de fechas.
+ */
 export const getStatistics = async (req, res) => {
     try {
         const stats = await getStatisticsData(req.query.startDate, req.query.endDate);
@@ -137,7 +171,9 @@ export const getStatistics = async (req, res) => {
     }
 };
 
-// --- Endpoint para generar y enviar el PDF ---
+/**
+ * Endpoint para generar y enviar un reporte PDF por correo.
+ */
 export const sendStatisticsReport = async (req, res) => {
     const { startDate, endDate } = req.body;
     try {
@@ -151,7 +187,9 @@ export const sendStatisticsReport = async (req, res) => {
     }
 };
 
-// --- Endpoint para el resumen del Dashboard ---
+/**
+ * Endpoint para obtener el resumen de datos para el Dashboard.
+ */
 export const getDashboardSummary = async (req, res) => {
     try {
         const [pendingOrders, totalUsers, dailySales] = await Promise.all([
@@ -176,7 +214,9 @@ export const getDashboardSummary = async (req, res) => {
     }
 };
 
-// --- Endpoint para la actividad reciente del Dashboard ---
+/**
+ * Endpoint para obtener la actividad reciente para el Dashboard.
+ */
 export const getRecentActivity = async (req, res) => {
     try {
         const recentOrders = await Pedido.findAll({ limit: 5, order: [['fecha_creacion', 'DESC']], attributes: ['pedido_id', 'fecha_creacion'] });
@@ -192,7 +232,9 @@ export const getRecentActivity = async (req, res) => {
     }
 };
 
-// --- Función para enviar correo con el reporte ---
+/**
+ * Función auxiliar para enviar un correo con un archivo adjunto.
+ */
 async function sendEmailWithAttachment(recipientEmail, pdfBuffer, startDate, endDate) {
     const transporter = nodemailer.createTransport({
         service: process.env.EMAIL_SERVICE,
@@ -210,3 +252,4 @@ async function sendEmailWithAttachment(recipientEmail, pdfBuffer, startDate, end
         }]
     });
 }
+

@@ -1,15 +1,26 @@
-// =================================================
-// ARCHIVO: src/middleware/validation.middleware.js 
-// =================================================
-// Este middleware conecta la lógica de validación con las rutas de Express.
+// =================================================================
+// ARCHIVO: src/middleware/validation.middleware.js
+// ROL: Define middlewares para validar los datos de entrada de las
+//      peticiones antes de que lleguen a los controladores.
+// =================================================================
 
+// Se importan las funciones de validación desde el helper de autenticación.
 import { validateEmail, validatePassword } from '../helpers/auth.js';
 
-// Middleware para validar la creación de un usuario
+/**
+ * Middleware para validar los datos requeridos en la creación de un nuevo usuario.
+ *
+ * @param {object} req - El objeto de la petición de Express.
+ * @param {object} res - El objeto de la respuesta de Express.
+ * @param {function} next - La función callback para pasar el control al siguiente middleware.
+ */
 export const validateUserCreation = (req, res, next) => {
+    // Se extraen los datos del cuerpo de la petición.
     const { nombre, correo, contraseña, rol } = req.body;
+    // Se inicializa un array para acumular los errores encontrados.
     const errors = [];
 
+    // --- Se ejecutan las reglas de validación ---
     if (!nombre || nombre.trim() === '') {
         errors.push({ field: 'nombre', message: 'El nombre es requerido.' });
     }
@@ -23,14 +34,23 @@ export const validateUserCreation = (req, res, next) => {
         errors.push({ field: 'rol', message: 'El rol no es válido.' });
     }
 
+    // --- Decisión final ---
+    // Si se encontraron errores, se detiene la cadena y se devuelve una respuesta 400.
     if (errors.length > 0) {
         return res.status(400).json({ errors });
     }
 
-    next(); // Si no hay errores, pasa al siguiente middleware o al controlador
+    // Si no hay errores, se pasa el control al siguiente middleware o al controlador.
+    next();
 };
 
-// Middleware para validar el login
+/**
+ * Middleware para validar los datos requeridos para el inicio de sesión.
+ *
+ * @param {object} req - El objeto de la petición de Express.
+ * @param {object} res - El objeto de la respuesta de Express.
+ * @param {function} next - La función callback para pasar el control.
+ */
 export const validateLogin = (req, res, next) => {
     const { correo, contraseña } = req.body;
     const errors = [];

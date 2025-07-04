@@ -1,11 +1,22 @@
+// =================================================================
+// ARCHIVO: src/controllers/factura.controller.js
+// ROL: Controlador que maneja la lógica de negocio para la
+//      creación, anulación, consulta y envío de facturas.
+// =================================================================
+
 import db from '../models/index.js';
 import nodemailer from 'nodemailer';
 import PDFDocument from 'pdfkit';
-import fs from 'fs';
+import fs from 'fs'; // Se importa el módulo 'fs' para interactuar con el sistema de archivos.
 
 const { Pedido, Factura, Producto, MetodoPago, DetallePedido, TransaccionPago, sequelize } = db;
 
-// --- Función para crear una nueva factura ---
+/**
+ * Crea una nueva factura, su transacción de pago asociada, y actualiza el estado del pedido.
+ * Toda la operación se ejecuta dentro de una transacción de base de datos para garantizar la integridad.
+ * @param {object} req - El objeto de la petición de Express.
+ * @param {object} res - El objeto de la respuesta de Express.
+ */
 export const createInvoice = async (req, res) => {
     const { pedido_id, metodo_pago_id, propina } = req.body;
 
@@ -13,8 +24,10 @@ export const createInvoice = async (req, res) => {
         return res.status(400).send({ message: "El ID del pedido y el método de pago son requeridos." });
     }
 
+    // Se inicia una transacción de Sequelize.
     const t = await sequelize.transaction();
     try {
+        // Se busca el pedido y se incluyen sus productos para el cálculo.
         const pedido = await Pedido.findByPk(pedido_id, {
             include: [{ model: Producto, through: { attributes: ['cantidad'] } }],
             transaction: t
@@ -24,11 +37,13 @@ export const createInvoice = async (req, res) => {
             await t.rollback();
             return res.status(404).send({ message: "Pedido no encontrado." });
         }
+        // Se valida que el pedido esté en el estado correcto para ser facturado.
         if (pedido.estado !== 'entregado') {
              await t.rollback();
              return res.status(400).send({ message: `El pedido no se puede facturar en estado: ${pedido.estado}` });
         }
 
+        // Se calculan los montos de la factura.
         let subtotal = 0;
         pedido.Productos.forEach(producto => {
             const cantidad = producto.DetallePedido.cantidad;
@@ -39,29 +54,38 @@ export const createInvoice = async (req, res) => {
         const propina_valor = parseFloat(propina) || 0;
         const total = subtotal + impuesto_total + propina_valor;
 
+        // 1. Se crea el registro de la factura.
         const nuevaFactura = await Factura.create({
             pedido_id, metodo_pago_id, subtotal, impuesto_total,
             propina: propina_valor, total
         }, { transaction: t });
 
-        // registrar la transacción de pago
+        // 2. Se crea el registro de la transacción de pago.
         await TransaccionPago.create({
             factura_id: nuevaFactura.factura_id,
             metodo_pago_id: metodo_pago_id,
             monto_pagado: total 
         }, { transaction: t });
         
+        // 3. Se actualiza el estado del pedido a 'pagado'.
         await pedido.update({ estado: 'pagado' }, { transaction: t });
+        
+        // Si todas las operaciones son exitosas, se confirman los cambios en la base de datos.
         await t.commit();
         res.status(201).send({ message: "Factura creada exitosamente.", factura: nuevaFactura });
 
     } catch (error) {
+        // Si alguna operación falla, se revierten todos los cambios.
         await t.rollback();
         res.status(500).send({ message: "Error al crear la factura: " + error.message });
     }
 };
 
-// --- Función para anular una factura ---
+/**
+ * Anula una factura existente y revierte el estado del pedido asociado.
+ * @param {object} req - El objeto de la petición de Express.
+ * @param {object} res - El objeto de la respuesta de Express.
+ */
 export const voidInvoice = async (req, res) => {
     const { id } = req.params; 
 
@@ -79,6 +103,7 @@ export const voidInvoice = async (req, res) => {
             return res.status(404).send({ message: "Pedido asociado no encontrado." });
         }
 
+        // Se eliminan en orden: transacciones, factura y luego se actualiza el pedido.
         await TransaccionPago.destroy({ where: { factura_id: id }, transaction: t });
         await Factura.destroy({ where: { factura_id: id }, transaction: t });
         await pedido.update({ estado: 'entregado' }, { transaction: t });
@@ -93,8 +118,11 @@ export const voidInvoice = async (req, res) => {
     }
 };
 
-
-// --- Función para obtener una factura por ID ---
+/**
+ * Obtiene los detalles de una factura específica por su ID.
+ * @param {object} req - El objeto de la petición de Express.
+ * @param {object} res - El objeto de la respuesta de Express.
+ */
 export const getInvoiceById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -115,8 +143,11 @@ export const getInvoiceById = async (req, res) => {
     }
 };
 
-
-// --- Función para Enviar Factura por Correo ---
+/**
+ * Envía una factura en formato PDF al correo electrónico de un cliente.
+ * @param {object} req - El objeto de la petición de Express.
+ * @param {object} res - El objeto de la respuesta de Express.
+ */
 export const sendInvoiceByEmail = async (req, res) => {
     const { id } = req.params;
     const { email } = req.body;
@@ -126,6 +157,7 @@ export const sendInvoiceByEmail = async (req, res) => {
     }
 
     try {
+        // Se obtienen todos los datos necesarios para construir el PDF.
         const factura = await Factura.findByPk(id, {
             include: [
                 {
@@ -143,6 +175,7 @@ export const sendInvoiceByEmail = async (req, res) => {
             return res.status(404).send({ message: "Factura no encontrada." });
         }
 
+        // Se generan el PDF y el correo de forma secuencial.
         const pdfBuffer = await createInvoicePdfBuffer(factura);
         await sendEmailWithAttachment(email, pdfBuffer, factura.factura_id);
 
@@ -154,7 +187,11 @@ export const sendInvoiceByEmail = async (req, res) => {
     }
 };
 
-// --- Funciones Auxiliares para PDF y Correo ---
+/**
+ * Función auxiliar para generar un PDF en memoria usando pdfkit.
+ * @param {object} factura - El objeto de la factura de Sequelize.
+ * @returns {Promise<Buffer>} - Una promesa que se resuelve con el buffer del PDF.
+ */
 async function createInvoicePdfBuffer(factura) {
     return new Promise((resolve) => {
         const doc = new PDFDocument({ size: 'A4', margin: 50 });
@@ -162,6 +199,7 @@ async function createInvoicePdfBuffer(factura) {
         doc.on('data', buffers.push.bind(buffers));
         doc.on('end', () => resolve(Buffer.concat(buffers)));
 
+        // Se añade el logo si el archivo existe.
         if (fs.existsSync('assets/logo.jpg')) {
             doc.image('assets/logo.jpg', {
                 fit: [60, 60],
@@ -170,6 +208,7 @@ async function createInvoicePdfBuffer(factura) {
             });
         }
 
+        // Se construye el contenido del PDF.
         doc.fontSize(20).font('Helvetica-Bold').text(`Factura #${factura.factura_id}`, { align: 'center' });
         doc.moveDown(2);
         doc.fontSize(12).font('Helvetica').text(`Fecha: ${new Date(factura.fecha_factura).toLocaleString()}`);
@@ -203,6 +242,12 @@ async function createInvoicePdfBuffer(factura) {
     });
 }
 
+/**
+ * Función auxiliar para enviar un correo con un archivo adjunto usando nodemailer.
+ * @param {string} recipientEmail - El correo del destinatario.
+ * @param {Buffer} pdfBuffer - El buffer del PDF a adjuntar.
+ * @param {number} invoiceId - El ID de la factura para el asunto y nombre del archivo.
+ */
 async function sendEmailWithAttachment(recipientEmail, pdfBuffer, invoiceId) {
     const transporter = nodemailer.createTransport({
         service: process.env.EMAIL_SERVICE,
