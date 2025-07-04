@@ -4,7 +4,7 @@
  */
 
 .footer {
-    background-color: var(--color-gray); /* <-- CAMBIO: Tono de gris intermedio */
+    background-color: var(--color-gray); 
     color: var(--color-text-light); /* Texto blanco para buen contraste */
     text-align: center;
     padding: 1.5rem;

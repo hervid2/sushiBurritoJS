@@ -80,11 +80,11 @@
     max-width: 400px;
     padding: 2rem; /* Se ajusta el padding para dar más aire */
 
-    /* --- AJUSTES DE PROPORCIÓN --- */
-    min-height: 450px; /* 1. Se establece una altura mínima para todas las tarjetas */
+    /* --- Proporciones --- */
+    min-height: 450px; /* Se establece una altura mínima para todas las tarjetas */
     display: flex;
     flex-direction: column;
-    justify-content: center; /* 2. Se centra el contenido verticalmente */
+    justify-content: center; /* Se centra el contenido verticalmente */
 }
 
 .auth-card form {
@@ -121,6 +121,7 @@
     text-decoration: underline;
 }
 
+/* Responsive */
 @media (max-width: 992px) {
     .auth-layout {
         flex-direction: column;

@@ -44,8 +44,3 @@
     margin: 0;
 }
 
-/* El botón de logout ya recibe estilos de la clase .btn */
-/* La visibilidad es controlada por JS */
-#logout-button {
-    /* Puedes añadir estilos específicos aquí si es necesario */
-}

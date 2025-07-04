@@ -27,7 +27,7 @@
     padding: 2rem;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-sm);
-    margin-bottom: 3rem; 
+    margin-bottom: 3rem;
 }
 
 .user-form-section h3 {
@@ -57,13 +57,22 @@
     font-weight: 700;
     text-transform: capitalize;
     color: var(--color-text-light);
-    display: inline-block; /* Asegura que el badge se muestre correctamente */
+    display: inline-block;
+    /* Asegura que el badge se muestre correctamente */
 }
 
 /* --- NOMBRES DE CLASE --- */
-.role-admin { background-color: var(--color-primary); }
-.role-mesero { background-color: var(--color-info); }
-.role-cocinero { background-color: var(--color-secondary); }
+.role-admin {
+    background-color: var(--color-primary);
+}
+
+.role-mesero {
+    background-color: var(--color-info);
+}
+
+.role-cocinero {
+    background-color: var(--color-secondary);
+}
 
 
 /* Estilos de paginación*/
@@ -74,6 +83,7 @@
     justify-content: center;
     align-items: center;
 }
+
 .pagination-container ul {
     display: flex;
     gap: 0.5rem;
@@ -81,6 +91,7 @@
     padding: 0;
     margin: 0;
 }
+
 .pagination-btn {
     padding: 0.5rem 1rem;
     border: 1px solid var(--border-color);
@@ -90,12 +101,18 @@
     border-radius: var(--border-radius-small);
     transition: all 0.2s ease-in-out;
 }
+
 .pagination-btn:hover:not(:disabled) {
     background-color: var(--color-primary);
     color: var(--color-text-light);
     border-color: var(--color-primary);
 }
-.pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .pagination-btn.active {
     background-color: var(--color-primary);
     color: var(--color-text-light);
@@ -103,7 +120,7 @@
     border-color: var(--color-primary);
 }
 
-
+/* Responsive */
 @media (max-width: 768px) {
     .users-management__header {
         flex-direction: column;

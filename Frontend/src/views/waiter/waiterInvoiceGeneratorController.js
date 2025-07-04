@@ -1,14 +1,20 @@
-// =============================================
-// ARCHIVO: waiterInvoiceGeneratorController.js 
-// =============================================
-
+// =================================================================
+// ARCHIVO: src/views/waiter/waiterInvoiceGeneratorController.js
+// ROL: Controlador para la vista "Generación de Factura" del mesero.
+//      Funciona como un asistente paso a paso para seleccionar un pedido,
+//      editar sus detalles para la facturación y generar la factura final.
+// =================================================================
 
 import { showAlert } from '../../helpers/alerts.js';
 import { showConfirmModal } from '../../helpers/modalHelper.js';
 import { api } from '../../helpers/solicitudes.js';
+import { validateEmail } from '../../helpers/auth.js';
 
+/**
+ * Controlador principal para la vista de Generación de Factura.
+ */
 export const waiterInvoiceGeneratorController = () => {
-    // --- Referencias al DOM ---
+    // --- Referencias a todos los Elementos del DOM ---
     const selectOrder = document.getElementById('select-order-for-invoice'), loadBtn = document.getElementById('load-invoice-details-btn');
     const detailsSection = document.getElementById('invoice-details-section'), tableBody = document.getElementById('invoice-items-table-body');
     const summarySubtotal = document.getElementById('summary-subtotal'), summaryTax = document.getElementById('summary-tax'), tipInput = document.getElementById('tip-amount'), summaryTotal = document.getElementById('summary-total');
@@ -19,23 +25,33 @@ export const waiterInvoiceGeneratorController = () => {
     const editItemModal = document.getElementById('edit-item-modal'), editItemForm = document.getElementById('edit-item-form'), editItemName = document.getElementById('edit-item-name');
     const editItemQuantity = document.getElementById('edit-item-quantity'), cancelEditBtn = document.getElementById('cancel-edit-btn'), saveEditBtn = document.getElementById('save-edit-btn');
 
-    // --- Estado ---
-    let currentOrder = null;
-    let generatedInvoiceId = null;
+    // --- Estado Local del Controlador ---
+    let currentOrder = null; // Almacena el pedido cargado y sus ítems en memoria.
+    let generatedInvoiceId = null; // Guarda el ID de la factura una vez generada.
 
     // --- Lógica de Cálculo y Renderizado ---
+
+    /**
+     * Calcula y muestra los totales (subtotal, impuesto, propina, total) en tiempo real.
+     */
     const calculateAndRenderTotals = () => {
-        if (!currentOrder) return;
+        if (!currentOrder) return;  // Si no hay un pedido cargado, no hace nada.
+        // Suma el valor neto de cada producto multiplicado por su cantidad.
         const subtotal = currentOrder.Productos.reduce((acc, item) => acc + (item.valor_neto * item.DetallePedido.cantidad), 0);
-        const tax = subtotal * 0.08;
-        const tip = parseFloat(tipInput.value) || 0;
-        const total = subtotal + tax + tip;
-        summarySubtotal.textContent = `$${subtotal.toFixed(2)}`;
-        summaryTax.textContent = `$${tax.toFixed(2)}`;
-        summaryTotal.textContent = `$${total.toFixed(2)}`;
+        // Se calcula el impuesto sobre el subtotal.
+        const tax = subtotal * 0.08; 
+        const tip = parseFloat(tipInput.value) || 0; // Propina ingresada por el usuario, o 0 si no se ha ingresado.
+        const total = subtotal + tax + tip; // Total final incluyendo subtotal, impuesto y propina.
+        summarySubtotal.textContent = `$${subtotal.toFixed(2)}`; // Muestra el subtotal formateado a 2 decimales.
+        summaryTax.textContent = `$${tax.toFixed(2)}`; // Muestra el impuesto formateado a 2 decimales.
+        summaryTotal.textContent = `$${total.toFixed(2)}`; // Muestra el total formateado a 2 decimales.
     };
 
+    /**
+     * Renderiza la tabla de ítems del pedido actual.
+     */
     const renderTable = () => {
+        // Mapea los productos del pedido y genera filas de tabla.
         tableBody.innerHTML = currentOrder.Productos.map((item, index) => `
             <tr>
                 <td>${item.nombre_producto}</td>
@@ -47,155 +63,214 @@ export const waiterInvoiceGeneratorController = () => {
                     <button class="btn btn--danger btn--small delete-item-btn" data-index="${index}" data-name="${item.nombre_producto}">Eliminar</button>
                 </td>
             </tr>
-        `).join('');
-        calculateAndRenderTotals();
+        `).join(''); 
+        calculateAndRenderTotals();// Llama a la función para calcular y mostrar los totales actualizados.
     };
 
     // --- Manejadores de Eventos y API ---
-    const handleLoadOrder = async () => {
-        const orderId = selectOrder.value;
-        if (!orderId) { showAlert('Por favor, seleccione un pedido.', 'warning'); return; }
+
+    /**
+     * Carga los detalles de un pedido seleccionado.
+     */
+    const handleLoadOrder = async () => { 
+        const orderId = selectOrder.value; // Obtiene el ID del pedido seleccionado en el dropdown.
+        if (!orderId) { showAlert('Por favor, seleccione un pedido.', 'warning'); return; } // Si no hay un pedido seleccionado, muestra una alerta y sale de la función.
         
         try {
-            currentOrder = await api.get(`pedidos/${orderId}`);
-            tipInput.value = "0.00";
-            renderTable();
-            detailsSection.style.display = 'block';
-            finalInvoiceSection.style.display = 'none';
+            currentOrder = await api.get(`pedidos/${orderId}`);// Llama a la API para obtener los detalles del pedido seleccionado.
+            tipInput.value = "0.00"; // Resetea el campo de propina a 0.00.
+            renderTable(); // Renderiza la tabla con los ítems del pedido actual.
+            detailsSection.style.display = 'block'; // Muestra la sección de detalles del pedido.
+            finalInvoiceSection.style.display = 'none'; // Asegura que la sección de factura final esté oculta al cargar un nuevo pedido.
         } catch (error) {
             showAlert(error.message, 'error');
         }
     };
     
-    const handleEditItem = (index) => {
-        const item = currentOrder.Productos[index];
-        editItemForm.querySelector('#edit-item-index').value = index;
-        editItemName.textContent = item.nombre_producto;
-        editItemQuantity.value = item.DetallePedido.cantidad;
-        editItemModal.classList.add('is-active');
+    /**
+     * Abre y configura el modal para editar la cantidad de un ítem.
+     * @param {number} index - El índice del ítem en el array currentOrder.Productos.
+     */
+    const handleEditItem = (index) => { 
+        const item = currentOrder.Productos[index]; // Obtiene el ítem del pedido actual según el índice proporcionado.
+        editItemForm.querySelector('#edit-item-index').value = index; // Guarda el índice del ítem en un campo oculto del formulario para usarlo al guardar los cambios.
+        editItemName.textContent = item.nombre_producto; // Muestra el nombre del ítem en el modal de edición.
+        editItemQuantity.value = item.DetallePedido.cantidad; // Establece la cantidad actual del ítem en el campo de entrada del modal.
+        editItemModal.classList.add('is-active'); // Muestra el modal de edición para que el usuario pueda modificar la cantidad del ítem.
     };
 
-    const handleSaveEdit = () => {
-        const index = editItemForm.querySelector('#edit-item-index').value;
-        currentOrder.Productos[index].DetallePedido.cantidad = parseInt(editItemQuantity.value, 10);
-        renderTable();
-        editItemModal.classList.remove('is-active');
+    /**
+     * Guarda la nueva cantidad de un ítem y actualiza la tabla.
+     */
+    const handleSaveEdit = () => { 
+        const index = editItemForm.querySelector('#edit-item-index').value; // Obtiene el índice del ítem a editar desde un campo oculto en el formulario.
+        currentOrder.Productos[index].DetallePedido.cantidad = parseInt(editItemQuantity.value, 10); // Actualiza la cantidad del ítem en el pedido actual con el valor ingresado en el campo de cantidad del modal.
+        renderTable(); // Vuelve a renderizar la tabla de ítems para reflejar los cambios realizados.
+        editItemModal.classList.remove('is-active'); // Cierra el modal de edición después de guardar los cambios.
     };
 
-    const handleDeleteItem = async (index, name) => {
+    /**
+     * Elimina un ítem de la factura (solo en la memoria, antes de generar).
+     * @param {number} index - El índice del ítem a eliminar.
+     * @param {string} name - El nombre del ítem para el modal de confirmación.
+     */
+    const handleDeleteItem = async (index, name) => { 
         try {
             await showConfirmModal('Confirmar Eliminación', `¿Está seguro de que desea eliminar <strong>${name}</strong> de la factura?`);
-            currentOrder.Productos.splice(index, 1);
-            renderTable();
+            currentOrder.Productos.splice(index, 1); // Elimina el ítem del array de productos del pedido actual usando el índice proporcionado.
+            renderTable();// Vuelve a renderizar la tabla de ítems para reflejar los cambios después de la eliminación.
             showAlert('Artículo eliminado de la factura.', 'success');
         } catch { 
             console.log("Eliminación de artículo cancelada.");
         }
     };
     
-    const handleFinalizeInvoice = async () => {
-        if (!currentOrder) return;
-        const invoiceData = {
-            pedido_id: currentOrder.pedido_id,
+    /**
+     * Envía los datos finales para crear la factura en el backend.
+     */
+    const handleFinalizeInvoice = async () => { 
+        if (!currentOrder) return; // Si no hay un pedido cargado, no hace nada.
+        
+        const originalButtonText = finalizeBtn.innerHTML; // Guarda el texto original del botón de finalización para restaurarlo después.
+        finalizeBtn.disabled = true; // Deshabilita el botón para evitar múltiples clics mientras se procesa la solicitud.
+        finalizeBtn.innerHTML = `<span class="spinner"></span> Generando...`; // Cambia el texto del botón a un spinner mientras se genera la factura.
+
+        const invoiceData = { // Prepara los datos necesarios para crear la factura.
+            pedido_id: currentOrder.pedido_id, 
             metodo_pago_id: paymentMethodSelect.value,
             propina: parseFloat(tipInput.value) || 0
-        };
+        }; // Incluye el ID del pedido, el método de pago seleccionado y la propina ingresada por el usuario.
 
         try {
-            const result = await api.post('facturas', invoiceData);
-            generatedInvoiceId = result.factura.factura_id;
-            showAlert(result.message, 'success');
+            const result = await api.post('facturas', invoiceData); // Envía una solicitud POST a la API para crear la factura con los datos preparados.
+            generatedInvoiceId = result.factura.factura_id; // Guarda el ID de la factura generada para futuras referencias (como anulación o envío por email).
+            showAlert(result.message, 'success'); 
             
-            await init(true);
+            await init(true); // Recarga la lista de pedidos a facturar.
 
-            detailsSection.style.display = 'none';
-            document.getElementById('order-selection-section').style.display = 'block';
-            finalInvoiceTitle.textContent = `Factura #${generatedInvoiceId} Generada`;
-            const finalTableHTML = `<table class="invoice-table"><thead>${document.getElementById('invoice-items-table').querySelector('thead').innerHTML}</thead><tbody>${tableBody.innerHTML}</tbody></table>`;
-            const finalSummaryHTML = `<div class="invoice-summary">${document.querySelector('.invoice-summary-details').outerHTML}</div>`;
-            finalInvoiceContent.innerHTML = finalTableHTML + finalSummaryHTML;
-            finalInvoiceSection.style.display = 'block';
+            detailsSection.style.display = 'none'; // Oculta la sección de detalles del pedido para mostrar la factura generada.
+            document.getElementById('order-selection-section').style.display = 'block'; // Muestra la sección de selección de pedidos para permitir al usuario generar otra factura si lo desea.
+            finalInvoiceTitle.textContent = `Factura #${generatedInvoiceId} Generada`; // Actualiza el título de la sección final para reflejar el ID de la factura generada.
+            const finalTableHTML = `<table class="invoice-table"><thead>${document.getElementById('invoice-items-table').querySelector('thead').innerHTML}</thead><tbody>${tableBody.innerHTML}</tbody></table>`; // Crea el HTML de la tabla de ítems de la factura generada.
+            const finalSummaryHTML = `<div class="invoice-summary">${document.querySelector('.invoice-summary-details').outerHTML}</div>`; // Crea el HTML del resumen de la factura generada.
+            finalInvoiceContent.innerHTML = finalTableHTML + finalSummaryHTML; // Muestra el contenido final de la factura generada.
+            finalInvoiceSection.style.display = 'block'; // Muestra la sección final de la factura generada al usuario.
 
         } catch (error) {
             showAlert(error.message, 'error');
+        } finally {
+            finalizeBtn.disabled = false; // Restaura el estado del botón de finalización.
+            finalizeBtn.innerHTML = originalButtonText; // Restaura el texto original del botón de finalización.
         }
     };
 
+    /**
+     * Anula una factura recién creada para permitir su corrección.
+     */
     const handleVoidInvoice = async () => {
-        if (!generatedInvoiceId) return;
+        if (!generatedInvoiceId) return; // Si no hay una factura generada, no hace nada.
+
+        const originalButtonText = voidInvoiceBtn.innerHTML;
+        voidInvoiceBtn.disabled = true;
+        voidInvoiceBtn.innerHTML = `<span class="spinner"></span> Anulando...`;
+
         try {
-            await showConfirmModal('Confirmar Anulación', `¿Está seguro de que desea anular la factura <strong>#${generatedInvoiceId}</strong>? Esta acción no se puede deshacer.`);
-            const response = await api.post(`facturas/${generatedInvoiceId}/void`);
-            showAlert(response.message, 'success');
-            // Volver a la pantalla de edición
-            finalInvoiceSection.style.display = 'none';
-            detailsSection.style.display = 'block';
-            // Recargar la lista de pedidos para que el anulado vuelva a aparecer
-            await init(true);
+            await showConfirmModal('Confirmar Anulación', `¿Está seguro de que desea anular la factura <strong>#${generatedInvoiceId}</strong>? Esta acción no se puede deshacer.`); // Muestra un modal de confirmación.
+            const response = await api.post(`facturas/${generatedInvoiceId}/void`); // Envía una solicitud POST a la API para anular la factura.
+            showAlert(response.message, 'success'); // Muestra una alerta de éxito.
+            
+            // Vuelve a la pantalla de edición para corregir el pedido.
+            finalInvoiceSection.style.display = 'none'; // Oculta la sección de factura final.
+            detailsSection.style.display = 'block';  // Muestra la sección de detalles del pedido para permitir al usuario corregirlo.
+            
+            await init(true); // Recarga la lista de pedidos.
 
         } catch (error) {
             if (error && error.message) {
                 showAlert(error.message, 'error');
             } else {
-                console.log("Anulación cancelada por el usuario.");
+                console.log("Anulación cancelada por el usuario."); 
             }
+        } finally {
+            voidInvoiceBtn.disabled = false; // Restaura el estado del botón de anulación. 
+            voidInvoiceBtn.innerHTML = originalButtonText; // Restaura el texto original del botón de anulación.
         }
     };
 
+    /**
+     * Maneja el envío de la factura por correo electrónico.
+     */
     const handleSendEmail = async (e) => {
-        e.preventDefault();
-        const email = emailInput.value;
-        if (email && /^\S+@\S+\.\S+$/.test(email) && generatedInvoiceId) {
+        e.preventDefault(); // Previene el comportamiento por defecto del formulario.
+        const email = emailInput.value; // Obtiene el correo electrónico ingresado.
+        const submitBtn = sendEmailForm.querySelector('button[type="submit"]'); // Obtiene el botón de envío del formulario.
+
+        if (validateEmail(email) && generatedInvoiceId) { // Verifica que el correo sea válido y que haya una factura generada.
+            const originalButtonText = submitBtn.innerHTML; // Guarda el texto original del botón de envío.
+            submitBtn.disabled = true; // Deshabilita el botón de envío para evitar múltiples envíos.
+            submitBtn.innerHTML = `<span class="spinner"></span> Enviando...`; // Cambia el texto del botón a un spinner mientras se envía el correo.
+
             try {
-                const response = await api.post(`facturas/${generatedInvoiceId}/send-email`, { email });
-                sendEmailModal.classList.remove('is-active');
-                showAlert(response.message, 'success');
+                const response = await api.post(`facturas/${generatedInvoiceId}/send-email`, { email }); // Envía la solicitud para enviar el correo.
+                sendEmailModal.classList.remove('is-active'); // Cierra el modal.
+                showAlert(response.message, 'success'); // Muestra una alerta de éxito.
             } catch (error) {
                 showAlert(error.message, 'error');
+            } finally {
+                submitBtn.disabled = false; // Restaura el estado del botón de envío.
+                submitBtn.innerHTML = originalButtonText; // Restaura el texto original del botón.
             }
         } else {
-            showAlert('Formato de correo inválido.', 'error');
+            showAlert('Formato de correo inválido.', 'error'); // Muestra una alerta de error si el correo no es válido.
         }
     };
 
-    // --- Inicialización ---
-    const init = async (isRefresh = false) => {
+    // --- Inicialización del Controlador ---
+    /**
+     * Inicializa la vista, cargando los datos necesarios para los selectores.
+     * @param {boolean} [isRefresh=false] - Si es true, no recarga los métodos de pago.
+     */
+    const init = async (isRefresh = false) => { 
         try {
-            if (!isRefresh) {
-                const paymentMethods = await api.get('metodos-pago');
-                paymentMethodSelect.innerHTML = paymentMethods.map(p => `<option value="${p.metodo_pago_id}">${p.nombre_metodo}</option>`).join('');
+            // Carga los métodos de pago solo la primera vez.
+            if (!isRefresh) { 
+                const paymentMethods = await api.get('metodos-pago'); // Llama a la API para obtener la lista de métodos de pago.
+                paymentMethodSelect.innerHTML = paymentMethods.map(p => `<option value="${p.metodo_pago_id}">${p.nombre_metodo}</option>`).join(''); // Agrega los métodos de pago al selector.
             }
-            const orders = await api.get('pedidos?estado=entregado');
+            // Carga (o recarga) la lista de pedidos en estado 'entregado'.
+            const orders = await api.get('pedidos?estado=entregado'); // Llama a la API para obtener los pedidos 'entregado'.
             selectOrder.innerHTML = '<option value="">-- Seleccione un pedido --</option>' + 
-                orders.map(o => `<option value="${o.pedido_id}">Pedido #${o.pedido_id} - Mesa ${o.Mesa?.numero_mesa || 'N/A'}</option>`).join('');
+                orders.map(o => `<option value="${o.pedido_id}">Pedido #${o.pedido_id} - Mesa ${o.Mesa?.numero_mesa || 'N/A'}</option>`).join(''); // Agrega los pedidos al selector.
 
         } catch (error) {
             showAlert(error.message, 'error');
         }
     };
     
-    tableBody.addEventListener('click', (e) => {
-        const target = e.target;
+    // --- Asignación de Event Listeners ---
+    tableBody.addEventListener('click', (e) => { // Escucha los clics en la tabla de ítems.
+        const target = e.target; // Obtiene el elemento que disparó el evento.
         if (target.matches('.edit-item-btn')) {
-            handleEditItem(target.dataset.index);
-        } else if (target.matches('.delete-item-btn')) {
-            handleDeleteItem(target.dataset.index, target.dataset.name);
+            handleEditItem(target.dataset.index); // Llama a la función para editar el ítem.
+        } else if (target.matches('.delete-item-btn')) { 
+            handleDeleteItem(target.dataset.index, target.dataset.name); // Llama a la función para eliminar el ítem.
         }
     });
 
-    loadBtn.onclick = handleLoadOrder;
-    tipInput.oninput = () => calculateAndRenderTotals();
-    finalizeBtn.onclick = handleFinalizeInvoice;
-    voidInvoiceBtn.onclick = handleVoidInvoice;
-    sendEmailBtn.onclick = () => sendEmailModal.classList.add('is-active');
+    loadBtn.onclick = handleLoadOrder; // Asigna el manejador de eventos para cargar los detalles del pedido.
+    tipInput.oninput = () => calculateAndRenderTotals(); // Asigna el manejador de eventos para calcular los totales cuando se ingresa una propina.
+    finalizeBtn.onclick = handleFinalizeInvoice; // Asigna el manejador de eventos para finalizar la factura.
+    voidInvoiceBtn.onclick = handleVoidInvoice; // Asigna el manejador de eventos para anular la factura.
+    sendEmailBtn.onclick = () => sendEmailModal.classList.add('is-active'); // Abre el modal de envío de correo.
     
-    cancelEditBtn.onclick = () => editItemModal.classList.remove('is-active');
-    editItemModal.querySelector('.modal__close-btn').onclick = () => editItemModal.classList.remove('is-active');
-    saveEditBtn.onclick = handleSaveEdit;
+    cancelEditBtn.onclick = () => editItemModal.classList.remove('is-active'); // Cierra el modal de edición.
+    editItemModal.querySelector('.modal__close-btn').onclick = () => editItemModal.classList.remove('is-active'); // Cierra el modal de edición.
+    saveEditBtn.onclick = handleSaveEdit; // Guarda los cambios de edición.
 
-    cancelEmailBtn.onclick = () => sendEmailModal.classList.remove('is-active');
-    sendEmailModal.querySelector('.modal__close-btn').onclick = () => sendEmailModal.classList.remove('is-active');
-    sendEmailForm.onsubmit = handleSendEmail;
+    cancelEmailBtn.onclick = () => sendEmailModal.classList.remove('is-active'); // Cierra el modal de envío de correo.
+    sendEmailModal.querySelector('.modal__close-btn').onclick = () => sendEmailModal.classList.remove('is-active'); // Cierra el modal de envío de correo.
+    sendEmailForm.onsubmit = handleSendEmail; // Asigna el manejador de eventos para enviar el correo.
 
-    init();
+    init(); // Inicializa la vista.
 };
+

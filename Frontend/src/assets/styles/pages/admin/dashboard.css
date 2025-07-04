@@ -5,10 +5,10 @@
 
 .dashboard {
     /* --- AJUSTE DE ANCHO Y ALINEACIÓN --- */
-    width: 90%;             
-    max-width: 1400px;      
-    margin: 0 auto;         
-    padding: 2rem 0;        
+    width: 90%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 0;
 }
 
 .dashboard__header {
@@ -35,7 +35,8 @@
     padding: 1.5rem;
     box-shadow: var(--shadow-sm);
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    border-left: 5px solid transparent; 
+    border-left: 5px solid transparent;
+}
 
 .stat-card:hover {
     transform: translateY(-5px);
@@ -51,7 +52,7 @@
 
 .stat-card__label {
     font-size: var(--text-sm);
-    color: var(--color-text);
+    color: var(--text-text);
     opacity: 0.8;
 }
 
@@ -100,34 +101,42 @@
     margin-right: 0.5rem;
 }
 
+
+/* ESTILOS DE CARRUSEL */
 .carousel {
     position: relative;
     max-width: 100%;
     margin: auto;
     overflow: hidden;
     border-radius: var(--border-radius);
+    /* Se establece una altura fija para contener las imágenes apiladas */
+    height: 850px;
 }
 
 .carousel__slide {
-    display: none;
+    /* Se posicionan todas las diapositivas una encima de la otra */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;  /* Por defecto, están ocultas (transparentes) */
+    transition: opacity 1.5s ease-in-out;  /* Se define la transición para la propiedad 'opacity' */
+
+}
+
+/* La diapositiva con la clase 'is-active' será visible */
+.carousel__slide.is-active {
+    opacity: 1;
 }
 
 .carousel__slide img {
     width: 100%;
-    height: 400px;
-    object-fit: cover;
+    height: 100%; /* La imagen llena el contenedor de la diapositiva */
+    object-fit: cover; /* Evita que la imagen se deforme */
     display: block;
 }
 
-.fade {
-    animation-name: fade;
-    animation-duration: 1.5s;
-}
-
-@keyframes fade {
-    from { opacity: .4 } 
-    to { opacity: 1 }
-}
 
 @media (max-width: 768px) {
     .dashboard {
@@ -138,7 +147,8 @@
         grid-template-columns: 1fr;
     }
     
-    .carousel__slide img {
+    /* Se ajusta la altura del carrusel en móviles */
+    .carousel {
         height: 250px;
     }
-}}
+}

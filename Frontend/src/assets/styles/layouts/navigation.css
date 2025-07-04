@@ -9,7 +9,7 @@
     margin: 0 auto;                    /* Centrado horizontal */
     padding: var(--spacing-small);     /* Padding interno */
     border-radius: var(--border-radius);
-    background-color: var(--color-gray); /* <-- Fondo gris como el footer */
+    background-color: var(--color-gray); /* Fondo gris como el footer */
     box-shadow: var(--shadow-md);
     display: flex;
     justify-content:space-around; /* Centra los elementos del menú */

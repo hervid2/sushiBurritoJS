@@ -41,15 +41,70 @@
   flex-grow: 1;
 }
 
-.invoice-table { width: 100%; border-collapse: collapse; }
-.invoice-table th, .invoice-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); text-align: left; vertical-align: middle; }
-.invoice-table thead th { background-color: var(--color-secondary); color: var(--color-text-light); }
-.invoice-table .table-actions { display: flex; gap: 0.5rem; }
+.invoice-table {
+  width: 100%;
+  border-collapse: collapse;
+}
 
-.invoice-summary { display: flex; justify-content: flex-end; margin-top: 1.5rem; }
-.invoice-summary-details { width: 100%; max-width: 350px; }
-.summary-row { display: flex; justify-content: space-between; padding: 0.5rem 0; font-size: var(--text-base); align-items: center; }
-.summary-row.total { font-size: var(--text-lg); font-weight: 700; color: var(--color-primary); border-top: 2px solid var(--color-primary); margin-top: 0.5rem; padding-top: 0.5rem; }
-#tip-amount { width: 80px; text-align: right; border: 1px solid var(--border-color); border-radius: var(--border-radius-small); padding: 0.25rem; font-size: var(--text-base); }
+.invoice-table th,
+.invoice-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+  vertical-align: middle;
+}
 
-.invoice-actions { margin-top: 2rem; display: flex; justify-content: flex-end; align-items: flex-end; gap: 1rem; }
+.invoice-table thead th {
+  background-color: var(--color-secondary);
+  color: var(--color-text-light);
+}
+
+.invoice-table .table-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.invoice-summary {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.invoice-summary-details {
+  width: 100%;
+  max-width: 350px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  font-size: var(--text-base);
+  align-items: center;
+}
+
+.summary-row.total {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--color-primary);
+  border-top: 2px solid var(--color-primary);
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+}
+
+#tip-amount {
+  width: 80px;
+  text-align: right;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-small);
+  padding: 0.25rem;
+  font-size: var(--text-base);
+}
+
+.invoice-actions {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  gap: 1rem;
+}

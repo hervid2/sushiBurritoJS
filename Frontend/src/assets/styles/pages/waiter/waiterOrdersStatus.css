@@ -26,21 +26,25 @@
 
 /* --- ESTILOS DE TABLA CONSISTENTES --- */
 .waiter-orders-status-page .table thead th {
-  background-color: var(--color-secondary); /* Encabezado verde */
+  background-color: var(--color-secondary);
+  /* Encabezado verde */
   color: var(--color-text-light);
   border-bottom: 2px solid var(--color-secondary-dark);
 }
 
 .waiter-orders-status-page .table tbody tr:nth-child(odd) {
-  background-color: var(--color-background); /* Filas impares blancas */
+  background-color: var(--color-background);
+  /* Filas impares blancas */
 }
 
 .waiter-orders-status-page .table tbody tr:nth-child(even) {
-  background-color: var(--color-light-bg-alt); /* Filas pares gris sutil */
+  background-color: var(--color-light-bg-alt);
+  /* Filas pares gris sutil */
 }
 
 .waiter-orders-status-page .table tbody tr:hover {
-  background-color: var(--color-primary-light); /* Hover naranja claro */
+  background-color: var(--color-primary-light);
+  /* Hover naranja claro */
 }
 
 
@@ -57,8 +61,31 @@
   border: 1px solid transparent;
 }
 
-.status-badge--pending { background-color: var(--color-warning); border-color: #e6a700; }
-.status-badge--preparing { background-color: var(--color-info); color: var(--color-text-light); border-color: #117a8b; }
-.status-badge--ready { background-color: var(--color-success); color: var(--color-text-light); border-color: #1e7e34; }
-.status-badge--completed { background-color: var(--color-light-gray); color: var(--color-gray); border-color: #adb5bd; }
-.status-badge--cancelled { background-color: var(--color-danger); color: var(--color-text-light); border-color: #b21f2d; }
+.status-badge--pending {
+  background-color: var(--color-warning);
+  border-color: #e6a700;
+}
+
+.status-badge--preparing {
+  background-color: var(--color-info);
+  color: var(--color-text-light);
+  border-color: #117a8b;
+}
+
+.status-badge--ready {
+  background-color: var(--color-success);
+  color: var(--color-text-light);
+  border-color: #1e7e34;
+}
+
+.status-badge--completed {
+  background-color: var(--color-light-gray);
+  color: var(--color-gray);
+  border-color: #adb5bd;
+}
+
+.status-badge--cancelled {
+  background-color: var(--color-danger);
+  color: var(--color-text-light);
+  border-color: #b21f2d;
+}

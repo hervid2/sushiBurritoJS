@@ -74,6 +74,9 @@
   opacity: 0.65;
   cursor: not-allowed;
   transform: none !important;
+  /*!important asegura que ninguna otra regla CSS sobreescriba esto, 
+  *forzando el botón a quedarse quieto y sin efectos animados.
+  */
 }
 
 /* --- ESTILOS PARA EL SPINNER --- */
